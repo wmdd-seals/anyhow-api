@@ -52,9 +52,9 @@ export const resolvers = {
                 where: {id : args.id}
             });
        },
-       findQuizWithGuidId: (_parent, args: { guide_id: string }, context:Context) =>{
+       findQuizWithGuidId: (_parent, args: { guideid: string }, context:Context) =>{
             return context.prisma.quizzes.findUnique({
-                where: {guide_id : args.guide_id}
+                where: {guide_id : args.guideid}
             });
        },
        searchGuides: (_parent, args: { text: string }, context:Context) =>{

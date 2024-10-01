@@ -11,7 +11,7 @@ export const typeDef = gql`
 
   type Query {
     findQuizById(Id: String): Guides
-    findQuizWithGuidId(guide_id : String) : Guides!
+    findQuizWithGuidId(guideid : String) : Guides!
   }
 
   type Mutation {
