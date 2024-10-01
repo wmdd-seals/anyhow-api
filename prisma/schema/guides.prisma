@@ -1,0 +1,11 @@
+model Guides {
+    id String @id @default(uuid())
+    user Users @relation(fields: [user_id], references: [id])
+    user_id String
+    title String
+    description String
+    body String
+    created_ts DateTime @default(now())
+    updated_ts DateTime @default(now())
+    quzzies Quizzes?
+}
