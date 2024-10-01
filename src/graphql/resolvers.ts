@@ -1,9 +1,9 @@
 import { Context } from '../context.js'
 
 interface UserCreateInput {
-    first_name: string
-    middle_name?: string
-    last_name: string
+    firstName: string
+    middleName?: string
+    lastName: string
     email: string
     password: string
     
@@ -87,9 +87,9 @@ export const resolvers = {
        signupUser: (_parent,args: { data: UserCreateInput },context:Context) => {
              return context.prisma.users.create({
                 data : {
-                   first_name: args.data.first_name,
-                   middle_name: args.data.middle_name,
-                   last_name: args.data.last_name,
+                   first_name: args.data.firstName,
+                   middle_name: args.data.middleName,
+                   last_name: args.data.lastName,
                    email: args.data.email,
                    password: args.data.password
                 },

@@ -6,9 +6,9 @@ import { gql } from 'graphql-tag';
 export const typeDef =gql`
  type Users{
     id : String!
-    first_name : String!
-    middle_name : String
-    last_name : String!
+    firstName : String!
+    middleName : String
+    lastName : String!
     email : String!
     password : String!
     guides : [Guides!]
@@ -25,9 +25,9 @@ export const typeDef =gql`
  }
 
  input UserCreateInput{
-    first_name : String!
-    middle_name : String
-    last_name : String!
+    firstName : String!
+    middleName : String
+    lastName : String!
     email : String!
     password : String!
  }`;
