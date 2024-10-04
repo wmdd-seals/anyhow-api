@@ -1,4 +1,7 @@
-import { Context } from '../context.js'
+import type { Context } from '../context'
+import { type Guides, type Quizzes, type Users } from '@prisma/client'
+
+type PromiseMaybe<T> = Promise<T | null>
 
 interface UserCreateInput {
     firstName: string
@@ -33,37 +36,47 @@ interface QuizCreationInput {
 export const resolvers = {
     Query: {
         findUserByEmail: (
-            _parent,
+            _: never,
             args: { email: string },
             context: Context
-        ) => {
+        ): PromiseMaybe<Users> => {
             return context.prisma.users.findUnique({
                 where: { email: args.email }
             })
         },
-        findGuideById: (_parent, args: { id: string }, context: Context) => {
+        findGuideById: (
+            _: never,
+            args: { id: string },
+            context: Context
+        ): PromiseMaybe<Guides> => {
             return context.prisma.guides.findUnique({
-                include: {
-                    quzzies: false
-                },
+                include: { quzzies: false },
                 where: { id: args.id }
             })
         },
-        findQuizById: (_parent, args: { id: string }, context: Context) => {
+        findQuizById: (
+            _: never,
+            args: { id: string },
+            context: Context
+        ): PromiseMaybe<Quizzes> => {
             return context.prisma.quizzes.findUnique({
                 where: { id: args.id }
             })
         },
-        findQuizWithGuidId: (
-            _parent,
+        findQuizWithGuideId: (
+            _: never,
             args: { guideId: string },
             context: Context
-        ) => {
+        ): PromiseMaybe<Quizzes> => {
             return context.prisma.quizzes.findUnique({
                 where: { guide_id: args.guideId }
             })
         },
-        searchGuides: (_parent, args: { text: string }, context: Context) => {
+        searchGuides: (
+            _: never,
+            args: { text: string },
+            context: Context
+        ): PromiseMaybe<Guides[]> => {
             return context.prisma.guides.findMany({
                 include: {
                     quzzies: false
@@ -76,29 +89,25 @@ export const resolvers = {
             })
         },
         findAllGuidesWithUserEmail: (
-            _parent,
-            args: { email: string },
+            _: never,
+            args: { id: string },
             context: Context
-        ) => {
-            return context.prisma.users.findUnique({
+        ): PromiseMaybe<Guides[]> => {
+            return context.prisma.guides.findMany({
                 relationLoadStrategy: 'join',
                 include: {
-                    guides: {
-                        include: {
-                            quzzies: false
-                        }
-                    }
+                    quzzies: false
                 },
-                where: { email: args.email }
+                where: { user_id: args.id }
             })
         }
     },
     Mutation: {
         signupUser: (
-            _parent,
+            _: never,
             args: { data: UserCreateInput },
             context: Context
-        ) => {
+        ): PromiseMaybe<Users> => {
             return context.prisma.users.create({
                 data: {
                     first_name: args.data.firstName,
@@ -111,10 +120,10 @@ export const resolvers = {
         },
 
         createGuide: (
-            _parent,
+            _: never,
             args: { data: GuideCreationInput },
             context: Context
-        ) => {
+        ): PromiseMaybe<Guides> => {
             return context.prisma.guides.create({
                 data: {
                     title: args.data.title,
@@ -127,10 +136,10 @@ export const resolvers = {
             })
         },
         createQuiz: (
-            _parent,
+            _: never,
             args: { data: QuizCreationInput },
             context: Context
-        ) => {
+        ): PromiseMaybe<Quizzes> => {
             return context.prisma.quizzes.create({
                 data: {
                     title: args.data.title,
@@ -144,4 +153,3 @@ export const resolvers = {
         }
     }
 }
-

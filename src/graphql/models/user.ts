@@ -1,23 +1,20 @@
 import { gql } from 'graphql-tag'
 
-export const typeDef = gql`
-    type Users {
-        id: String!
+export const userTypeDef = gql`
+    type User {
+        id: ID!
         firstName: String!
         middleName: String
         lastName: String!
         email: String!
-        password: String!
-        guides: [Guides!]
     }
 
     type Query {
-        findUserByEmail(email: String): Users!
-        findAllGuidesWithUserEmail(email: String): Users!
+        findUserByEmail(email: String): User!
     }
 
     type Mutation {
-        signupUser(data: UserCreateInput!): Users!
+        signupUser(data: UserCreateInput!): User!
     }
 
     input UserCreateInput {
@@ -28,4 +25,3 @@ export const typeDef = gql`
         password: String!
     }
 `
-
