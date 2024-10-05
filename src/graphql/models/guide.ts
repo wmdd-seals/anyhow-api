@@ -11,13 +11,12 @@ export const guideTypeDef = gql`
     }
 
     type Query {
-        findGuideById(id: ID!): Guide!
-        searchGuides(text: String): [Guide]!
-        findAllGuidesWithUserEmail(email: String): [Guide]!
+        guide(id: ID!): Guide!
+        guides(userId: ID, search: String): [Guide]!
     }
 
     type Mutation {
-        createGuide(data: GuideCreationInput!): Guide!
+        createGuide(input: GuideCreationInput!): Guide!
     }
 
     input UserInput {

@@ -3,6 +3,10 @@ import { type Guides, type Quizzes, type Users } from '@prisma/client'
 
 type PromiseMaybe<T> = Promise<T | null>
 
+type MutationInput<T> = {
+    input: T
+}
+
 interface UserCreateInput {
     firstName: string
     middleName?: string
@@ -35,118 +39,85 @@ interface QuizCreationInput {
 
 export const resolvers = {
     Query: {
-        findUserByEmail: (
+        user: (
             _: never,
-            args: { email: string },
+            args: { id: string },
             context: Context
         ): PromiseMaybe<Users> => {
             return context.prisma.users.findUnique({
-                where: { email: args.email }
+                where: { id: args.id }
             })
         },
-        findGuideById: (
+        guide(
             _: never,
             args: { id: string },
             context: Context
-        ): PromiseMaybe<Guides> => {
+        ): PromiseMaybe<Guides> {
             return context.prisma.guides.findUnique({
-                include: { quzzies: false },
+                include: { quizzes: false },
                 where: { id: args.id }
             })
         },
-        findQuizById: (
+        guides(
             _: never,
-            args: { id: string },
+            args: {
+                userId?: string
+                search?: string
+            },
             context: Context
-        ): PromiseMaybe<Quizzes> => {
-            return context.prisma.quizzes.findUnique({
-                where: { id: args.id }
-            })
-        },
-        findQuizWithGuideId: (
-            _: never,
-            args: { guideId: string },
-            context: Context
-        ): PromiseMaybe<Quizzes> => {
-            return context.prisma.quizzes.findUnique({
-                where: { guide_id: args.guideId }
-            })
-        },
-        searchGuides: (
-            _: never,
-            args: { text: string },
-            context: Context
-        ): PromiseMaybe<Guides[]> => {
+        ): PromiseMaybe<Guides[]> {
             return context.prisma.guides.findMany({
-                include: {
-                    quzzies: false
-                },
                 where: {
-                    body: {
-                        search: args.text
-                    }
+                    user_id: args.userId,
+                    body: { search: args.search }
                 }
-            })
-        },
-        findAllGuidesWithUserEmail: (
-            _: never,
-            args: { id: string },
-            context: Context
-        ): PromiseMaybe<Guides[]> => {
-            return context.prisma.guides.findMany({
-                relationLoadStrategy: 'join',
-                include: {
-                    quzzies: false
-                },
-                where: { user_id: args.id }
             })
         }
     },
     Mutation: {
         signupUser: (
             _: never,
-            args: { data: UserCreateInput },
+            args: MutationInput<UserCreateInput>,
             context: Context
         ): PromiseMaybe<Users> => {
             return context.prisma.users.create({
                 data: {
-                    first_name: args.data.firstName,
-                    middle_name: args.data.middleName,
-                    last_name: args.data.lastName,
-                    email: args.data.email,
-                    password: args.data.password
+                    first_name: args.input.firstName,
+                    middle_name: args.input.middleName,
+                    last_name: args.input.lastName,
+                    email: args.input.email,
+                    password: args.input.password
                 }
             })
         },
-
         createGuide: (
             _: never,
-            args: { data: GuideCreationInput },
+            args: MutationInput<GuideCreationInput>,
             context: Context
         ): PromiseMaybe<Guides> => {
             return context.prisma.guides.create({
                 data: {
-                    title: args.data.title,
-                    description: args.data.description,
-                    body: args.data.body,
+                    title: args.input.title,
+                    description: args.input.description,
+                    body: args.input.body,
                     user: {
-                        connect: { email: args.data.user.email }
+                        connect: { email: args.input.user.email }
                     }
                 }
             })
         },
         createQuiz: (
             _: never,
-            args: { data: QuizCreationInput },
+            args: MutationInput<QuizCreationInput>,
             context: Context
         ): PromiseMaybe<Quizzes> => {
             return context.prisma.quizzes.create({
                 data: {
-                    title: args.data.title,
-                    description: args.data.description,
-                    body: args.data.body,
+                    title: args.input.title,
+                    description: args.input.description,
+                    body: args.input.body,
                     guide: {
-                        connect: { id: args.data.guide.id }
+                        connect: { id: args.input.guide.id }
                     }
                 }
             })

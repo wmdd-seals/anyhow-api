@@ -10,11 +10,11 @@ export const userTypeDef = gql`
     }
 
     type Query {
-        findUserByEmail(email: String): User!
+        user(id: ID!): User!
     }
 
     type Mutation {
-        signupUser(data: UserCreateInput!): User!
+        signupUser(input: UserCreateInput!): User!
     }
 
     input UserCreateInput {

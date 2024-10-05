@@ -9,13 +9,8 @@ export const quizTypeDef = gql`
         body: String!
     }
 
-    type Query {
-        findQuizById(id: ID!): Guide
-        findQuizWithGuideId(guideId: ID!): Guide!
-    }
-
     type Mutation {
-        createQuiz(data: QuizCreationInput!): Guide!
+        createQuiz(input: QuizCreationInput!): Guide!
     }
 
     input QuizCreationInput {
