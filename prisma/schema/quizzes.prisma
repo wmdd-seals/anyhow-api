@@ -1,12 +1,10 @@
-model Quizzes{
+model Quizzes {
     id String @id @default(uuid())
     guide Guides @relation(fields: [guide_id], references: [id])
     guide_id String @unique
     title String
     description String
-    body Json
+    body String
     created_ts DateTime @default(now())
     updated_ts DateTime @default(now())
-
 }
-

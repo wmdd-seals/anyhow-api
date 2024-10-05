@@ -7,5 +7,5 @@ model Guides {
     body String
     created_ts DateTime @default(now())
     updated_ts DateTime @default(now())
-    quizzes Quizzes?
+    quizzes Quizzes[]
 }
