@@ -1,10 +1,12 @@
 model Quizzes {
     id String @id @default(uuid())
-    guide Guides @relation(fields: [guide_id], references: [id])
-    guide_id String @unique
+    guide Guides @relation(fields: [guideId], references: [id])
+    guideId String @unique @map("guide_id")
     title String
     description String
     body String
     created_ts DateTime @default(now())
     updated_ts DateTime @default(now())
+    
+    @@map("quizzes")
 }

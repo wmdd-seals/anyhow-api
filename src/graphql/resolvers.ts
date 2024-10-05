@@ -45,7 +45,7 @@ export const resolvers = {
             context: Context
         ): PromiseMaybe<Quizzes[]> => {
             return context.prisma.quizzes.findMany({
-                where: { guide_id: parent.id }
+                where: { guideId: parent.id }
             })
         }
     },
@@ -78,7 +78,7 @@ export const resolvers = {
         ): PromiseMaybe<Guides[]> {
             return context.prisma.guides.findMany({
                 where: {
-                    user_id: args.userId,
+                    userId: args.userId,
                     body: { search: args.search }
                 }
             })
@@ -92,9 +92,9 @@ export const resolvers = {
         ): PromiseMaybe<Users> => {
             return context.prisma.users.create({
                 data: {
-                    first_name: args.input.firstName,
-                    middle_name: args.input.middleName,
-                    last_name: args.input.lastName,
+                    firstName: args.input.firstName,
+                    middleName: args.input.middleName,
+                    lastName: args.input.lastName,
                     email: args.input.email,
                     password: args.input.password
                 }

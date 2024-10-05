@@ -5,6 +5,8 @@ export interface Context {
     currentUserId?: string
 }
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+    log: ['query', 'info', 'warn', 'error']
+})
 
 export const createContext = (): Promise<Context> => Promise.resolve({ prisma })

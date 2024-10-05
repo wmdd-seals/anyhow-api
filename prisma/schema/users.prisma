@@ -1,11 +1,13 @@
 model Users {
     id String @id @default(uuid())
-    first_name String
-    middle_name String?
-    last_name String
+    firstName String @map("first_name")
+    middleName String? @map("middle_name")
+    lastName String @map("last_name")
     email String @unique
     password String
     created_ts DateTime @default(now())
     updated_ts DateTime @default(now())
     guides Guides[]
+
+    @@map("users")
 }
