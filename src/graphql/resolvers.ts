@@ -38,6 +38,17 @@ interface QuizCreationInput {
 }
 
 export const resolvers = {
+    Guide: {
+        quizzes: (
+            parent: Guides,
+            _args: never,
+            context: Context
+        ): PromiseMaybe<Quizzes[]> => {
+            return context.prisma.quizzes.findMany({
+                where: { guide_id: parent.id }
+            })
+        }
+    },
     Query: {
         user: (
             _: never,
