@@ -54,7 +54,6 @@ export const resolvers = {
             context: Context
         ): PromiseMaybe<Guides> {
             return context.prisma.guides.findUnique({
-                include: { quizzes: false },
                 where: { id: args.id }
             })
         },

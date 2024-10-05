@@ -4,12 +4,15 @@
     "skipLibCheck": true,
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "module": "ESNext",
+    "rootDir": ".",
+    "outDir": "dist",
+    "sourceMap": true,
+    "module": "esnext",
     "lib": [
-      "ES2020"
+      "esnext"
     ],
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -17,11 +20,11 @@
     "types": [
       "node"
     ],
-    "baseUrl": ".",
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "esModuleInterop": true,
     "verbatimModuleSyntax": true,
     "noFallthroughCasesInSwitch": true
   },
