@@ -1,5 +1,6 @@
 import type { Context } from '../context'
 import { type Guides, type Quizzes, type Users } from '@prisma/client'
+import { generateToken } from './auth/jwt'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -37,51 +38,99 @@ interface QuizCreationInput {
     body: string
 }
 
+interface UserSingIn {
+    token: string
+    message: string
+}
+
+interface UserSignInInput {
+    email: string
+    password: string
+}
+
 export const resolvers = {
     Guide: {
-        quizzes: (
+        quizzes: async (
             parent: Guides,
             _args: never,
             context: Context
-        ): PromiseMaybe<Quizzes[]> => {
+        ): Promise<PromiseMaybe<Quizzes[]>> => {
+            const userId = await context.currentUserId
+
+            if (!userId) return null
+
             return context.prisma.quizzes.findMany({
-                where: { guideId: parent.id }
+                where: { guideId: parent.id, userId: userId }
             })
         }
     },
     Query: {
-        user: (
+        async user(
             _: never,
-            args: { id: string },
+            _args: never,
             context: Context
-        ): PromiseMaybe<Users> => {
+        ): PromiseMaybe<Users> {
+            const userId = await context.currentUserId
+
+            if (!userId) return null
+
             return context.prisma.users.findUnique({
-                where: { id: args.id }
+                where: { id: userId }
             })
         },
-        guide(
+        async guide(
             _: never,
             args: { id: string },
             context: Context
-        ): PromiseMaybe<Guides> {
+        ): Promise<PromiseMaybe<Guides>> {
+            const userId = await context.currentUserId
+
+            if (!userId) return null
             return context.prisma.guides.findUnique({
                 where: { id: args.id }
             })
         },
-        guides(
+        async guides(
             _: never,
             args: {
-                userId?: string
                 search?: string
             },
             context: Context
-        ): PromiseMaybe<Guides[]> {
+        ): Promise<PromiseMaybe<Guides[]>> {
+            const userId = await context.currentUserId
+
+            if (!userId) return null
+
             return context.prisma.guides.findMany({
                 where: {
-                    userId: args.userId,
                     body: { search: args.search }
                 }
             })
+        },
+        async signIn(
+            _: never,
+            args: MutationInput<UserSignInInput>,
+            context: Context
+        ): Promise<UserSingIn> {
+            const user = await context.prisma.users.findUnique({
+                where: {
+                    email: args.input.email,
+                    password: args.input.password
+                }
+            })
+
+            if (user) {
+                const token = await generateToken({ userid: user.id })
+                return {
+                    token: token,
+                    message: ''
+                }
+            } else {
+                return {
+                    token: '',
+                    message: 'Invalid email or password'
+                }
+            }
         }
     },
     Mutation: {
@@ -100,27 +149,35 @@ export const resolvers = {
                 }
             })
         },
-        createGuide: (
+        createGuide: async (
             _: never,
             args: MutationInput<GuideCreationInput>,
             context: Context
         ): PromiseMaybe<Guides> => {
+            const userId = await context.currentUserId
+
+            if (!userId) return null
+
             return context.prisma.guides.create({
                 data: {
                     title: args.input.title,
                     description: args.input.description,
                     body: args.input.body,
                     user: {
-                        connect: { email: args.input.user.email }
+                        connect: { id: userId }
                     }
                 }
             })
         },
-        createQuiz: (
+        createQuiz: async (
             _: never,
             args: MutationInput<QuizCreationInput>,
             context: Context
         ): PromiseMaybe<Quizzes> => {
+            const userId = await context.currentUserId
+
+            if (!userId) return null
+
             return context.prisma.quizzes.create({
                 data: {
                     title: args.input.title,
@@ -128,6 +185,9 @@ export const resolvers = {
                     body: args.input.body,
                     guide: {
                         connect: { id: args.input.guide.id }
+                    },
+                    user: {
+                        connect: { id: userId }
                     }
                 }
             })

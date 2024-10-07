@@ -7,12 +7,11 @@ export const guideTypeDef = gql`
         description: String!
         body: String!
         quizzes: [Quiz]!
-        user: User!
     }
 
     type Query {
         guide(id: ID!): Guide!
-        guides(userId: ID, search: String): [Guide]!
+        guides(search: String): [Guide]!
     }
 
     type Mutation {
@@ -27,6 +26,5 @@ export const guideTypeDef = gql`
         title: String!
         description: String!
         body: String!
-        user: UserInput!
     }
 `
