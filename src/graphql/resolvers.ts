@@ -93,6 +93,7 @@ export const resolvers = {
         async guides(
             _: never,
             args: {
+                userId?: string
                 search?: string
             },
             context: Context
@@ -103,6 +104,7 @@ export const resolvers = {
 
             return context.prisma.guides.findMany({
                 where: {
+                    userId: args.userId,
                     body: { search: args.search }
                 }
             })
