@@ -23,8 +23,8 @@ export const verifyToken = async (token: string): Promise<string> => {
         if (!token) return ''
 
         const result = await jose.jwtVerify(token, secret, {
-            issuer: 'AnyHow',
-            audience: 'AnyHow-Client'
+            issuer: process.env.JWT_ISSUER,
+            audience: process.env.JWT_AUDIENCE
         })
 
         return typeof result.payload.userid === 'string'
