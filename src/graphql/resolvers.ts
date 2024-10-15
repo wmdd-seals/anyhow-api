@@ -1,6 +1,7 @@
 import type { Context } from '../context'
 import { type Guides, type Quizzes, type Users } from '@prisma/client'
 import { generateToken } from './auth/jwt'
+import { GraphQLError } from 'graphql'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -48,6 +49,23 @@ interface UserSignInInput {
     password: string
 }
 
+const verifyUser = async (context: Context): Promise<string> => {
+    const userId = await context.currentUserId
+
+    if (!userId) {
+        throw new GraphQLError(
+            'You are not authorized to perform this action.',
+            {
+                extensions: {
+                    code: 'UNAUTHENTICATED'
+                }
+            }
+        )
+    }
+
+    return userId
+}
+
 export const resolvers = {
     Guide: {
         quizzes: async (
@@ -55,9 +73,7 @@ export const resolvers = {
             _args: never,
             context: Context
         ): Promise<PromiseMaybe<Quizzes[]>> => {
-            const userId = await context.currentUserId
-
-            if (!userId) return null
+            const userId = await verifyUser(context)
 
             return context.prisma.quizzes.findMany({
                 where: { guideId: parent.id, userId: userId }
@@ -70,9 +86,7 @@ export const resolvers = {
             _args: never,
             context: Context
         ): PromiseMaybe<Users> {
-            const userId = await context.currentUserId
-
-            if (!userId) return null
+            const userId = await verifyUser(context)
 
             return context.prisma.users.findUnique({
                 where: { id: userId }
@@ -83,9 +97,6 @@ export const resolvers = {
             args: { id: string },
             context: Context
         ): Promise<PromiseMaybe<Guides>> {
-            const userId = await context.currentUserId
-
-            if (!userId) return null
             return context.prisma.guides.findUnique({
                 where: { id: args.id }
             })
@@ -98,10 +109,6 @@ export const resolvers = {
             },
             context: Context
         ): Promise<PromiseMaybe<Guides[]>> {
-            const userId = await context.currentUserId
-
-            if (!userId) return null
-
             return context.prisma.guides.findMany({
                 where: {
                     userId: args.userId,
@@ -156,9 +163,7 @@ export const resolvers = {
             args: MutationInput<GuideCreationInput>,
             context: Context
         ): PromiseMaybe<Guides> => {
-            const userId = await context.currentUserId
-
-            if (!userId) return null
+            const userId = await verifyUser(context)
 
             return context.prisma.guides.create({
                 data: {
@@ -176,9 +181,7 @@ export const resolvers = {
             args: MutationInput<QuizCreationInput>,
             context: Context
         ): PromiseMaybe<Quizzes> => {
-            const userId = await context.currentUserId
-
-            if (!userId) return null
+            const userId = await verifyUser(context)
 
             return context.prisma.quizzes.create({
                 data: {

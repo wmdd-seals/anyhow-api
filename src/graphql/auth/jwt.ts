@@ -1,12 +1,10 @@
-import * as jose from 'jose'
-import * as crypto from 'crypto'
+import { createSecretKey } from 'crypto'
+import { jwtVerify, SignJWT, type JWTPayload } from 'jose'
 
-const secret = crypto.createSecretKey(process.env.JWT_SECRET!, 'utf-8')
+const secret = createSecretKey(process.env.JWT_SECRET!, 'utf-8')
 
-export const generateToken = async (
-    payload: jose.JWTPayload
-): Promise<string> => {
-    const token = await new jose.SignJWT(payload)
+export const generateToken = async (payload: JWTPayload): Promise<string> => {
+    const token = await new SignJWT(payload)
         .setProtectedHeader({
             alg: 'HS256'
         })
@@ -22,7 +20,7 @@ export const verifyToken = async (token: string): Promise<string> => {
     try {
         if (!token) return ''
 
-        const result = await jose.jwtVerify(token, secret, {
+        const result = await jwtVerify(token, secret, {
             issuer: process.env.JWT_ISSUER,
             audience: process.env.JWT_AUDIENCE
         })
