@@ -8,6 +8,7 @@ model Users {
     created_ts DateTime @default(now())
     updated_ts DateTime @default(now())
     guides Guides[]
-    quizzes Quizzes[]
+    quizzanswers QuizAnswers[]
+    guidereviews GuideReview[]
     @@map("users")
 }

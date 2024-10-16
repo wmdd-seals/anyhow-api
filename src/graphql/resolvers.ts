@@ -1,7 +1,9 @@
 import type { Context } from '../context'
 import { type Guides, type Quizzes, type Users } from '@prisma/client'
-import { generateToken } from './auth/jwt'
+import { generateToken } from './auth'
 import { GraphQLError } from 'graphql'
+import { jsonScalar } from './scalars'
+import type { InputJsonObject } from '@prisma/client/runtime/library'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -30,13 +32,14 @@ interface GuideCreationInput {
     description: string
     body: string
     user: UserInput
+    tags: InputJsonObject
 }
 
 interface QuizCreationInput {
     guide: GuideInput
     title: string
     description: string
-    body: string
+    body: InputJsonObject
 }
 
 interface UserSingIn {
@@ -67,16 +70,15 @@ const verifyUser = async (context: Context): Promise<string> => {
 }
 
 export const resolvers = {
+    JSON: jsonScalar,
     Guide: {
         quizzes: async (
             parent: Guides,
             _args: never,
             context: Context
         ): Promise<PromiseMaybe<Quizzes[]>> => {
-            const userId = await verifyUser(context)
-
             return context.prisma.quizzes.findMany({
-                where: { guideId: parent.id, userId: userId }
+                where: { guideId: parent.id }
             })
         }
     },
@@ -140,6 +142,13 @@ export const resolvers = {
                     message: 'Invalid email or password'
                 }
             }
+        },
+        genrateQuizeWithOpenAI(
+            _: never,
+            args: MutationInput<string>,
+            context: Context
+        ): Promise<unknown> {
+            return context.dataSources.openAI.chat(args.input)
         }
     },
     Mutation: {
@@ -170,6 +179,7 @@ export const resolvers = {
                     title: args.input.title,
                     description: args.input.description,
                     body: args.input.body,
+                    tags: args.input.tags,
                     user: {
                         connect: { id: userId }
                     }
@@ -181,8 +191,6 @@ export const resolvers = {
             args: MutationInput<QuizCreationInput>,
             context: Context
         ): PromiseMaybe<Quizzes> => {
-            const userId = await verifyUser(context)
-
             return context.prisma.quizzes.create({
                 data: {
                     title: args.input.title,
@@ -190,9 +198,6 @@ export const resolvers = {
                     body: args.input.body,
                     guide: {
                         connect: { id: args.input.guide.id }
-                    },
-                    user: {
-                        connect: { id: userId }
                     }
                 }
             })

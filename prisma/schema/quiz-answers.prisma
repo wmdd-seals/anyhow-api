@@ -1,0 +1,11 @@
+model QuizAnswers{
+    id String @id @default(uuid())
+    answer Json
+    created_ts DateTime @default(now())
+    updated_ts DateTime @default(now())
+    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String @map("user_id")
+    quiz Quizzes @relation(fields: [quizId], references: [id], onDelete: Cascade)
+    quizId String @map("quiz_id")
+    @@map("quiz_answers")
+}

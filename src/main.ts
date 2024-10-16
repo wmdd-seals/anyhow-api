@@ -2,9 +2,10 @@ import { ApolloServer } from '@apollo/server'
 import { startStandaloneServer } from '@apollo/server/standalone'
 import { type Context, prisma } from './context'
 import { resolvers, userTypeDef, guideTypeDef, quizTypeDef } from './graphql'
-import { verifyToken } from './graphql/auth/jwt'
+import { verifyToken } from './graphql/auth'
+import { OpenAIAPI } from './graphql/datasources'
 
-const server = new ApolloServer<Context>({
+const server = new ApolloServer({
     typeDefs: [userTypeDef, guideTypeDef, quizTypeDef],
     resolvers
 })
@@ -16,7 +17,8 @@ const { url } = await startStandaloneServer(server, {
     context: async ({ req }): Promise<Context> =>
         Promise.resolve({
             prisma,
-            currentUserId: verifyToken(req.headers.authorization || '')
+            currentUserId: verifyToken(req.headers.authorization || ''),
+            dataSources: { openAI: new OpenAIAPI() }
         })
 })
 
