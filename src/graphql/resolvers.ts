@@ -227,8 +227,7 @@ export const resolvers = {
                     lastName: args.input.lastName,
                     email: args.input.email,
                     password: args.input.password,
-                    favoriteTopics: args.input.favoriteTopics,
-                    updated_ts: new Date()
+                    favoriteTopics: args.input.favoriteTopics
                 },
                 where: {
                     id: userId

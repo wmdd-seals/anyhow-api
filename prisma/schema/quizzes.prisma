@@ -5,8 +5,8 @@ model Quizzes {
     title String
     description String
     body Json
-    created_ts DateTime @default(now())
-    updated_ts DateTime @default(now())
+    created_ts DateTime @default(now()) @db.Timestamptz(3)
+    updated_ts DateTime @updatedAt @db.Timestamptz(3)
     quizzanswers QuizAnswers[]
 
     @@map("quizzes")
