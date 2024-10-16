@@ -9,12 +9,23 @@ export const userTypeDef = gql`
         email: String!
     }
 
+    type UserSingIn {
+        token: String!
+        message: String!
+    }
+
     type Query {
-        user(id: ID!): User!
+        user: User!
+        signIn(input: UserSignInInput): UserSingIn!
     }
 
     type Mutation {
         signupUser(input: UserCreateInput!): User!
+    }
+
+    input UserSignInInput {
+        email: String!
+        password: String!
     }
 
     input UserCreateInput {

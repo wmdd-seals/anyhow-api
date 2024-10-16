@@ -1,13 +1,14 @@
 model Guides {
     id String @id @default(uuid())
-    user Users @relation(fields: [userId], references: [id])
+    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String @map("user_id")
     title String
     description String
     body String
+    tags Json
     created_ts DateTime @default(now())
     updated_ts DateTime @default(now())
-    quizzes Quizzes[]
-
+    quizzes Quizzes?
+    guidereviews GuideReview[]
     @@map("guides")
 }

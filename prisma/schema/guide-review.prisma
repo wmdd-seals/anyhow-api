@@ -1,14 +1,11 @@
-model Quizzes {
+model GuideReview{
     id String @id @default(uuid())
+    rating Int
     guide Guides @relation(fields: [guideId], references: [id], onDelete: Cascade)
     guideId String @map("guide_id") @unique
-    title String
-    description String
-    body Json
+    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String @map("user_id")
     created_ts DateTime @default(now())
     updated_ts DateTime @default(now())
-    quizzanswers QuizAnswers[]
-
-    @@map("quizzes")
-    
+    @@map("guide_reviews")
 }

@@ -28,9 +28,12 @@
     "typescript-eslint": "^8.8.0"
   },
   "dependencies": {
+    "@apollo/datasource-rest": "^6.3.0",
     "@apollo/server": "^4.11.0",
     "@prisma/client": "^5.20.0",
     "graphql": "^16.9.0",
-    "graphql-tag": "^2.12.6"
+    "graphql-tag": "^2.12.6",
+    "jose": "^5.9.3",
+    "openai": "^4.67.3"
   }
 }

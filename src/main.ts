@@ -1,9 +1,11 @@
 import { ApolloServer } from '@apollo/server'
 import { startStandaloneServer } from '@apollo/server/standalone'
-import { type Context, createContext } from './context'
+import { type Context, prisma } from './context'
 import { resolvers, userTypeDef, guideTypeDef, quizTypeDef } from './graphql'
+import { verifyToken } from './graphql/auth'
+import { OpenAIAPI } from './graphql/datasources'
 
-const server = new ApolloServer<Context>({
+const server = new ApolloServer({
     typeDefs: [userTypeDef, guideTypeDef, quizTypeDef],
     resolvers
 })
@@ -12,7 +14,12 @@ const port = process.env.PORT ? parseInt(process.env.PORT) : 4000
 
 const { url } = await startStandaloneServer(server, {
     listen: { port },
-    context: createContext
+    context: async ({ req }): Promise<Context> =>
+        Promise.resolve({
+            prisma,
+            currentUserId: verifyToken(req.headers.authorization || ''),
+            dataSources: { openAI: new OpenAIAPI() }
+        })
 })
 
 console.log(`🚀  Server ready at: ${url}`)

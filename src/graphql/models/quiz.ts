@@ -1,12 +1,17 @@
 import { gql } from 'graphql-tag'
 
 export const quizTypeDef = gql`
+    scalar JSON
     type Quiz {
         id: ID!
         guide: Guide!
         title: String!
         description: String!
-        body: String!
+        body: JSON!
+    }
+
+    type Query {
+        genrateQuizeWithOpenAI(input: String!): JSON!
     }
 
     type Mutation {
@@ -16,7 +21,7 @@ export const quizTypeDef = gql`
     input QuizCreationInput {
         guideId: ID!
         title: String!
-        description: String!
-        body: String!
+        description: JSON!
+        body: JSON!
     }
 `

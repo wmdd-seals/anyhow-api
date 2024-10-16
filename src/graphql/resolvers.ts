@@ -1,5 +1,9 @@
 import type { Context } from '../context'
 import { type Guides, type Quizzes, type Users } from '@prisma/client'
+import { generateToken } from './auth'
+import { GraphQLError } from 'graphql'
+import { jsonScalar } from './scalars'
+import type { InputJsonObject } from '@prisma/client/runtime/library'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -28,60 +32,123 @@ interface GuideCreationInput {
     description: string
     body: string
     user: UserInput
+    tags: InputJsonObject
 }
 
 interface QuizCreationInput {
     guide: GuideInput
     title: string
     description: string
-    body: string
+    body: InputJsonObject
+}
+
+interface UserSingIn {
+    token: string
+    message: string
+}
+
+interface UserSignInInput {
+    email: string
+    password: string
+}
+
+const verifyUser = async (context: Context): Promise<string> => {
+    const userId = await context.currentUserId
+
+    if (!userId) {
+        throw new GraphQLError(
+            'You are not authorized to perform this action.',
+            {
+                extensions: {
+                    code: 'UNAUTHENTICATED'
+                }
+            }
+        )
+    }
+
+    return userId
 }
 
 export const resolvers = {
+    JSON: jsonScalar,
     Guide: {
-        quizzes: (
+        quizzes: async (
             parent: Guides,
             _args: never,
             context: Context
-        ): PromiseMaybe<Quizzes[]> => {
+        ): Promise<PromiseMaybe<Quizzes[]>> => {
             return context.prisma.quizzes.findMany({
                 where: { guideId: parent.id }
             })
         }
     },
     Query: {
-        user: (
+        async user(
             _: never,
-            args: { id: string },
+            _args: never,
             context: Context
-        ): PromiseMaybe<Users> => {
+        ): PromiseMaybe<Users> {
+            const userId = await verifyUser(context)
+
             return context.prisma.users.findUnique({
-                where: { id: args.id }
+                where: { id: userId }
             })
         },
-        guide(
+        async guide(
             _: never,
             args: { id: string },
             context: Context
-        ): PromiseMaybe<Guides> {
+        ): Promise<PromiseMaybe<Guides>> {
             return context.prisma.guides.findUnique({
                 where: { id: args.id }
             })
         },
-        guides(
+        async guides(
             _: never,
             args: {
                 userId?: string
                 search?: string
             },
             context: Context
-        ): PromiseMaybe<Guides[]> {
+        ): Promise<PromiseMaybe<Guides[]>> {
             return context.prisma.guides.findMany({
                 where: {
                     userId: args.userId,
                     body: { search: args.search }
                 }
             })
+        },
+        async signIn(
+            _: never,
+            args: MutationInput<UserSignInInput>,
+            context: Context
+        ): Promise<UserSingIn> {
+            const user = await context.prisma.users.findUnique({
+                where: {
+                    email: args.input.email,
+                    password: args.input.password
+                }
+            })
+
+            if (user) {
+                const token = await generateToken({ userid: user.id })
+                return {
+                    token: token,
+                    message: ''
+                }
+            } else {
+                return {
+                    token: '',
+                    message: 'Invalid email or password'
+                }
+            }
+        },
+        genrateQuizeWithOpenAI(
+            _: never,
+            args: MutationInput<string>,
+            context: Context
+        ): Promise<unknown> {
+            return context.dataSources.openAI.chat(args.input)
         }
     },
     Mutation: {
@@ -100,23 +167,26 @@ export const resolvers = {
                 }
             })
         },
-        createGuide: (
+        createGuide: async (
             _: never,
             args: MutationInput<GuideCreationInput>,
             context: Context
         ): PromiseMaybe<Guides> => {
+            const userId = await verifyUser(context)
+
             return context.prisma.guides.create({
                 data: {
                     title: args.input.title,
                     description: args.input.description,
                     body: args.input.body,
+                    tags: args.input.tags,
                     user: {
-                        connect: { email: args.input.user.email }
+                        connect: { id: userId }
                     }
                 }
             })
         },
-        createQuiz: (
+        createQuiz: async (
             _: never,
             args: MutationInput<QuizCreationInput>,
             context: Context
