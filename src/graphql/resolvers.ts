@@ -17,6 +17,16 @@ interface UserCreateInput {
     lastName: string
     email: string
     password: string
+    favoriteTopics?: InputJsonObject
+}
+
+interface UserProfile {
+    firstName?: string
+    middleName?: string
+    lastName?: string
+    email?: string
+    password?: string
+    favoriteTopics?: InputJsonObject
 }
 
 interface UserInput {
@@ -143,11 +153,12 @@ export const resolvers = {
                 }
             }
         },
-        genrateQuizeWithOpenAI(
+        async genrateQuizeWithOpenAI(
             _: never,
             args: MutationInput<string>,
             context: Context
         ): Promise<unknown> {
+            await verifyUser(context)
             return context.dataSources.openAI.chat(args.input)
         }
     },
@@ -191,6 +202,7 @@ export const resolvers = {
             args: MutationInput<QuizCreationInput>,
             context: Context
         ): PromiseMaybe<Quizzes> => {
+            await verifyUser(context)
             return context.prisma.quizzes.create({
                 data: {
                     title: args.input.title,
@@ -199,6 +211,27 @@ export const resolvers = {
                     guide: {
                         connect: { id: args.input.guide.id }
                     }
+                }
+            })
+        },
+        updateUserProfile: async (
+            _: never,
+            args: MutationInput<UserProfile>,
+            context: Context
+        ): PromiseMaybe<Users> => {
+            const userId = await verifyUser(context)
+            return context.prisma.users.update({
+                data: {
+                    firstName: args.input.firstName,
+                    middleName: args.input.middleName,
+                    lastName: args.input.lastName,
+                    email: args.input.email,
+                    password: args.input.password,
+                    favoriteTopics: args.input.favoriteTopics,
+                    updated_ts: new Date()
+                },
+                where: {
+                    id: userId
                 }
             })
         }
