@@ -5,6 +5,7 @@ model Users {
     lastName String @map("last_name")
     email String @unique
     password String
+    favoriteTopics Json? @map("favorite_topics")
     created_ts DateTime @default(now())
     updated_ts DateTime @default(now())
     guides Guides[]

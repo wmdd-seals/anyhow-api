@@ -1,12 +1,14 @@
 import { gql } from 'graphql-tag'
 
 export const userTypeDef = gql`
+    scalar JSON
     type User {
         id: ID!
         firstName: String!
         middleName: String
         lastName: String!
         email: String!
+        favoriteTopics: JSON
     }
 
     type UserSingIn {
@@ -21,6 +23,7 @@ export const userTypeDef = gql`
 
     type Mutation {
         signupUser(input: UserCreateInput!): User!
+        updateUserProfile(input: UserProfile): User!
     }
 
     input UserSignInInput {
@@ -34,5 +37,14 @@ export const userTypeDef = gql`
         lastName: String!
         email: String!
         password: String!
+    }
+
+    input UserProfile {
+        firstName: String
+        middleName: String
+        lastName: String
+        email: String
+        password: String
+        favoriteTopics: JSON
     }
 `
