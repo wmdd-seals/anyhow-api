@@ -37,7 +37,7 @@ export const quizTypeDef = gql`
     input QuestionInput {
         question: String!
         options: [String]!
-        answer: String!
+        correctAnswerIndex: Int!
     }
 
     type GenreatedQuiz {
@@ -52,6 +52,6 @@ export const quizTypeDef = gql`
     type Question {
         question: String!
         options: [String]!
-        answer: String!
+        correctAnswerIndex: Int!
     }
 `

@@ -1,20 +1,24 @@
 import { OpenAI } from 'openai'
 import type { ChatCompletionUserMessageParam } from 'openai/resources'
+import { z } from 'zod'
+import { zodResponseFormat } from 'openai/helpers/zod'
 
-export interface GenreatedQuiz {
-    quiz?: Quiz
-}
+export type GenreatedQuiz = z.infer<typeof genreatedQuiz>
 
-interface Quiz {
-    title?: string
-    questions?: Question[]
-}
+const question = z.object({
+    question: z.string(),
+    options: z.string().array(),
+    correctAnswerIndex: z.number()
+})
 
-interface Question {
-    question: string
-    options: string[]
-    answer: string
-}
+const quiz = z.object({
+    title: z.string(),
+    questions: z.array(question)
+})
+
+const genreatedQuiz = z.object({
+    quiz: quiz
+})
 
 export class OpenAIAPI {
     private readonly client = new OpenAI({
@@ -26,18 +30,14 @@ export class OpenAIAPI {
             content: `${prompt}, retrun as JSON object`,
             role: 'user'
         }
-        const response = await this.client.chat.completions.create({
+        const response = await this.client.beta.chat.completions.parse({
             messages: [message],
             model: 'gpt-4o',
-            response_format: { type: 'json_object' }
+            response_format: zodResponseFormat(genreatedQuiz, 'quiz')
         })
 
-        console.log(response.choices[0]?.message?.content)
+        console.log(response.choices[0].message.parsed)
 
-        return JSON.parse(
-            response.choices[0]?.message?.content
-                ? response.choices[0].message.content
-                : '{}'
-        ) as GenreatedQuiz
+        return response.choices[0].message.parsed as GenreatedQuiz
     }
 }
