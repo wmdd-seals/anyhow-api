@@ -1,9 +1,10 @@
 import type { Context } from '../context'
-import { type Guides, type Quizzes, type Users } from '@prisma/client'
+import { Prisma, type Guides, type Quizzes, type Users } from '@prisma/client'
 import { generateToken } from './auth'
 import { GraphQLError } from 'graphql'
 import { jsonScalar } from './scalars'
 import type { InputJsonObject } from '@prisma/client/runtime/library'
+import type { GenreatedQuiz } from './datasources'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -33,10 +34,6 @@ interface UserInput {
     email: string
 }
 
-interface GuideInput {
-    id: string
-}
-
 interface GuideCreationInput {
     title: string
     description: string
@@ -46,10 +43,10 @@ interface GuideCreationInput {
 }
 
 interface QuizCreationInput {
-    guide: GuideInput
+    guideId: string
     title: string
     description: string
-    body: InputJsonObject
+    body: GenreatedQuiz
 }
 
 interface UserSingIn {
@@ -64,8 +61,8 @@ interface UserSignInInput {
 
 const verifyUser = async (context: Context): Promise<string> => {
     const userId = await context.currentUserId
-
-    if (!userId) {
+    console.log(userId)
+    if (!userId || userId === 'Invalid token') {
         throw new GraphQLError(
             'You are not authorized to perform this action.',
             {
@@ -86,8 +83,8 @@ export const resolvers = {
             parent: Guides,
             _args: never,
             context: Context
-        ): Promise<PromiseMaybe<Quizzes[]>> => {
-            return context.prisma.quizzes.findMany({
+        ): Promise<PromiseMaybe<Quizzes>> => {
+            return context.prisma.quizzes.findUnique({
                 where: { guideId: parent.id }
             })
         }
@@ -157,7 +154,8 @@ export const resolvers = {
             _: never,
             args: MutationInput<string>,
             context: Context
-        ): Promise<unknown> {
+        ): Promise<GenreatedQuiz> {
+            console.log(context.currentUserId)
             await verifyUser(context)
             return context.dataSources.openAI.chat(args.input)
         }
@@ -207,9 +205,9 @@ export const resolvers = {
                 data: {
                     title: args.input.title,
                     description: args.input.description,
-                    body: args.input.body,
+                    body: args.input.body as Prisma.JsonObject,
                     guide: {
-                        connect: { id: args.input.guide.id }
+                        connect: { id: args.input.guideId }
                     }
                 }
             })
