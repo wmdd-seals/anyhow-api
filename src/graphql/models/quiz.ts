@@ -11,18 +11,28 @@ export const quizTypeDef = gql`
     }
 
     type Query {
-        genrateQuizeWithOpenAI(input: String!): GenreatedQuiz!
+        genrateQuizeWithOpenAI(guideId: String!): GenreatedQuiz!
     }
 
     type Mutation {
         createQuiz(input: QuizCreationInput!): Quiz!
+        updateQuiz(input: UpdateQuizInput!): Quiz!
     }
 
     input QuizCreationInput {
         guideId: ID!
-        title: String!
-        description: String!
+        title: String
+        description: String
         body: GenreatedQuizInput!
+        published: Boolean
+    }
+
+    input UpdateQuizInput {
+        id: ID!
+        title: String
+        description: String
+        body: GenreatedQuizInput
+        published: Boolean
     }
 
     input GenreatedQuizInput {

@@ -2,8 +2,9 @@ model Quizzes {
     id String @id @default(uuid())
     guide Guides @relation(fields: [guideId], references: [id], onDelete: Cascade)
     guideId String @map("guide_id") @unique
-    title String
-    description String
+    title String?
+    description String?
+    published Boolean? @default(false)
     body Json
     created_ts DateTime @default(now()) @db.Timestamptz(3)
     updated_ts DateTime @updatedAt @db.Timestamptz(3)

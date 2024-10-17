@@ -7,7 +7,7 @@ export const guideTypeDef = gql`
         title: String
         description: String
         body: String
-        quizzes: Quiz
+        quiz: Quiz
         tags: JSON!
         user: User!
     }
@@ -31,6 +31,7 @@ export const guideTypeDef = gql`
         description: String!
         body: String!
         tags: JSON!
+        published: Boolean
     }
 
     input UpdateGuideInput {
@@ -39,5 +40,6 @@ export const guideTypeDef = gql`
         description: String
         body: String
         tags: JSON
+        published: Boolean
     }
 `

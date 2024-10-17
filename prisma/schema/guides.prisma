@@ -6,6 +6,7 @@ model Guides {
     description String
     body String
     tags Json
+    published Boolean @default(false)
     created_ts DateTime @default(now()) @db.Timestamptz(3)
     updated_ts DateTime @updatedAt @db.Timestamptz(3)
     quizzes Quizzes?

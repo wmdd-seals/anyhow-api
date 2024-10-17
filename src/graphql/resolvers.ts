@@ -40,6 +40,7 @@ interface GuideCreationInput {
     body: string
     user: UserInput
     tags: InputJsonObject
+    published?: boolean
 }
 
 interface UpdateGuideInput {
@@ -48,13 +49,23 @@ interface UpdateGuideInput {
     title?: string
     tags?: InputJsonObject
     description?: string
+    published?: boolean
 }
 
 interface QuizCreationInput {
     guideId: string
-    title: string
-    description: string
+    title?: string
+    description?: string
     body: GenreatedQuiz
+    published?: boolean
+}
+
+interface UpdateQuizInput {
+    id: string
+    title?: string
+    description?: string
+    body?: GenreatedQuiz
+    published?: boolean
 }
 
 interface UserSingIn {
@@ -87,7 +98,7 @@ const verifyUser = async (context: Context): Promise<string> => {
 export const resolvers = {
     JSON: jsonScalar,
     Guide: {
-        quizzes: async (
+        quiz: async (
             parent: Guides,
             _args: never,
             context: Context
@@ -160,12 +171,35 @@ export const resolvers = {
         },
         async genrateQuizeWithOpenAI(
             _: never,
-            args: MutationInput<string>,
+            args: {
+                guideId: string
+            },
             context: Context
         ): Promise<GenreatedQuiz> {
             console.log(context.currentUserId)
-            await verifyUser(context)
-            return context.dataSources.openAI.chat(args.input)
+            const userId = await verifyUser(context)
+            const guide = await context.prisma.guides.findUnique({
+                where: {
+                    userId,
+                    id: args.guideId
+                }
+            })
+            if (guide) {
+                const genreatedquiz = await context.dataSources.openAI.chat(
+                    guide.body
+                )
+                const quiz = await context.prisma.quizzes.create({
+                    data: {
+                        body: genreatedquiz as Prisma.JsonObject,
+                        guide: {
+                            connect: { id: guide.id }
+                        }
+                    }
+                })
+
+                return quiz.body as GenreatedQuiz
+            }
+            return {} as GenreatedQuiz
         }
     },
     Mutation: {
@@ -197,6 +231,7 @@ export const resolvers = {
                     description: args.input.description,
                     body: args.input.body,
                     tags: args.input.tags,
+                    published: args.input.published,
                     user: {
                         connect: { id: userId }
                     }
@@ -215,7 +250,8 @@ export const resolvers = {
                     title: args.input.title,
                     description: args.input.description,
                     body: args.input.body,
-                    tags: args.input.tags
+                    tags: args.input.tags,
+                    published: args.input.published
                 },
                 where: {
                     userId,
@@ -234,9 +270,30 @@ export const resolvers = {
                     title: args.input.title,
                     description: args.input.description,
                     body: args.input.body as Prisma.JsonObject,
+                    published: args.input.published,
                     guide: {
                         connect: { id: args.input.guideId }
                     }
+                }
+            })
+        },
+        updateQuiz: async (
+            _: never,
+            args: MutationInput<UpdateQuizInput>,
+            context: Context
+        ): PromiseMaybe<Guides> => {
+            const userId = await verifyUser(context)
+
+            return context.prisma.guides.update({
+                data: {
+                    title: args.input.title,
+                    description: args.input.description,
+                    body: args.input.body as Prisma.JsonObject,
+                    published: args.input.published
+                },
+                where: {
+                    userId,
+                    id: args.input.id
                 }
             })
         },

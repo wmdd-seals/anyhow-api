@@ -27,7 +27,7 @@ export class OpenAIAPI {
 
     public async chat(prompt: string): Promise<GenreatedQuiz> {
         const message: ChatCompletionUserMessageParam = {
-            content: `${prompt}, retrun as JSON object`,
+            content: `Please create up to 10 questions regarding the following content. Each question is a multiple choice and must have 2~4 answer options and only 1 answer and retrun as JSON object. \n ${prompt}`,
             role: 'user'
         }
         const response = await this.client.beta.chat.completions.parse({
