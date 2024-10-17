@@ -5,7 +5,7 @@ model GuideReview{
     guideId String @map("guide_id") @unique
     user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String @map("user_id")
-    created_ts DateTime @default(now())
-    updated_ts DateTime @default(now())
+    created_ts DateTime @default(now()) @db.Timestamptz(3)
+    updated_ts DateTime @updatedAt @db.Timestamptz(3)
     @@map("guide_reviews")
 }

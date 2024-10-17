@@ -6,8 +6,9 @@ model Guides {
     description String
     body String
     tags Json
-    created_ts DateTime @default(now())
-    updated_ts DateTime @default(now())
+    published Boolean @default(false)
+    created_ts DateTime @default(now()) @db.Timestamptz(3)
+    updated_ts DateTime @updatedAt @db.Timestamptz(3)
     quizzes Quizzes?
     guidereviews GuideReview[]
     @@map("guides")
