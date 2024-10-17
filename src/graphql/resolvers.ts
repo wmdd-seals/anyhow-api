@@ -78,6 +78,10 @@ interface UserSignInInput {
     password: string
 }
 
+interface GenerateQuizInput {
+    guideId: string
+}
+
 const verifyUser = async (context: Context): Promise<string> => {
     const userId = await context.currentUserId
     console.log(userId)
@@ -168,38 +172,6 @@ export const resolvers = {
                     message: 'Invalid email or password'
                 }
             }
-        },
-        async genrateQuize(
-            _: never,
-            args: {
-                guideId: string
-            },
-            context: Context
-        ): Promise<GenreatedQuiz> {
-            console.log(context.currentUserId)
-            const userId = await verifyUser(context)
-            const guide = await context.prisma.guides.findUnique({
-                where: {
-                    userId,
-                    id: args.guideId
-                }
-            })
-            if (guide) {
-                const genreatedquiz = await context.dataSources.openAI.chat(
-                    guide.body
-                )
-                const quiz = await context.prisma.quizzes.create({
-                    data: {
-                        body: genreatedquiz as Prisma.JsonObject,
-                        guide: {
-                            connect: { id: guide.id }
-                        }
-                    }
-                })
-
-                return quiz.body as GenreatedQuiz
-            }
-            return {} as GenreatedQuiz
         }
     },
     Mutation: {
@@ -316,6 +288,36 @@ export const resolvers = {
                     id: userId
                 }
             })
+        },
+        async generateQuize(
+            _: never,
+            args: MutationInput<GenerateQuizInput>,
+            context: Context
+        ): Promise<GenreatedQuiz> {
+            console.log(context.currentUserId)
+            const userId = await verifyUser(context)
+            const guide = await context.prisma.guides.findUnique({
+                where: {
+                    userId,
+                    id: args.input.guideId
+                }
+            })
+            if (guide) {
+                const genreatedquiz = await context.dataSources.openAI.chat(
+                    guide.body
+                )
+                const quiz = await context.prisma.quizzes.create({
+                    data: {
+                        body: genreatedquiz as Prisma.JsonObject,
+                        guide: {
+                            connect: { id: guide.id }
+                        }
+                    }
+                })
+
+                return quiz.body as GenreatedQuiz
+            }
+            return {} as GenreatedQuiz
         }
     }
 }

@@ -10,13 +10,14 @@ export const quizTypeDef = gql`
         body: GenreatedQuiz
     }
 
-    type Query {
-        genrateQuize(input: String!): JSON!
+    input GenerateQuizInput {
+        guideId: ID!
     }
 
     type Mutation {
         createQuiz(input: QuizCreationInput!): Quiz!
         updateQuiz(input: UpdateQuizInput!): Quiz!
+        generateQuize(input: GenerateQuizInput!): JSON!
     }
 
     input QuizCreationInput {
