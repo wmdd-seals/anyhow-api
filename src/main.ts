@@ -4,10 +4,10 @@ import { type Context, prisma } from './context'
 import { resolvers, userTypeDef, guideTypeDef, quizTypeDef } from './graphql'
 import { verifyToken } from './graphql/auth'
 import { OpenAIAPI } from './graphql/datasources'
-
 const server = new ApolloServer({
     typeDefs: [userTypeDef, guideTypeDef, quizTypeDef],
-    resolvers
+    resolvers,
+    includeStacktraceInErrorResponses: false
 })
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 4000

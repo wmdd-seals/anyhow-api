@@ -1,9 +1,10 @@
 import type { Context } from '../context'
-import { type Guides, type Quizzes, type Users } from '@prisma/client'
+import { Prisma, type Guides, type Quizzes, type Users } from '@prisma/client'
 import { generateToken } from './auth'
 import { GraphQLError } from 'graphql'
 import { jsonScalar } from './scalars'
 import type { InputJsonObject } from '@prisma/client/runtime/library'
+import type { GenreatedQuiz } from './datasources'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -33,16 +34,13 @@ interface UserInput {
     email: string
 }
 
-interface GuideInput {
-    id: string
-}
-
 interface GuideCreationInput {
     title: string
     description: string
     body: string
     user: UserInput
     tags: InputJsonObject
+    published?: boolean
 }
 
 interface UpdateGuideInput {
@@ -51,13 +49,23 @@ interface UpdateGuideInput {
     title?: string
     tags?: InputJsonObject
     description?: string
+    published?: boolean
 }
 
 interface QuizCreationInput {
-    guide: GuideInput
-    title: string
-    description: string
-    body: InputJsonObject
+    guideId: string
+    title?: string
+    description?: string
+    body: GenreatedQuiz
+    published?: boolean
+}
+
+interface UpdateQuizInput {
+    id: string
+    title?: string
+    description?: string
+    body?: GenreatedQuiz
+    published?: boolean
 }
 
 interface UserSingIn {
@@ -72,8 +80,8 @@ interface UserSignInInput {
 
 const verifyUser = async (context: Context): Promise<string> => {
     const userId = await context.currentUserId
-
-    if (!userId) {
+    console.log(userId)
+    if (!userId || userId === 'Invalid token') {
         throw new GraphQLError(
             'You are not authorized to perform this action.',
             {
@@ -90,12 +98,12 @@ const verifyUser = async (context: Context): Promise<string> => {
 export const resolvers = {
     JSON: jsonScalar,
     Guide: {
-        quizzes: async (
+        quiz: async (
             parent: Guides,
             _args: never,
             context: Context
-        ): Promise<PromiseMaybe<Quizzes[]>> => {
-            return context.prisma.quizzes.findMany({
+        ): Promise<PromiseMaybe<Quizzes>> => {
+            return context.prisma.quizzes.findUnique({
                 where: { guideId: parent.id }
             })
         }
@@ -163,11 +171,35 @@ export const resolvers = {
         },
         async genrateQuize(
             _: never,
-            args: MutationInput<string>,
+            args: {
+                guideId: string
+            },
             context: Context
-        ): Promise<unknown> {
-            await verifyUser(context)
-            return context.dataSources.openAI.chat(args.input)
+        ): Promise<GenreatedQuiz> {
+            console.log(context.currentUserId)
+            const userId = await verifyUser(context)
+            const guide = await context.prisma.guides.findUnique({
+                where: {
+                    userId,
+                    id: args.guideId
+                }
+            })
+            if (guide) {
+                const genreatedquiz = await context.dataSources.openAI.chat(
+                    guide.body
+                )
+                const quiz = await context.prisma.quizzes.create({
+                    data: {
+                        body: genreatedquiz as Prisma.JsonObject,
+                        guide: {
+                            connect: { id: guide.id }
+                        }
+                    }
+                })
+
+                return quiz.body as GenreatedQuiz
+            }
+            return {} as GenreatedQuiz
         }
     },
     Mutation: {
@@ -199,6 +231,7 @@ export const resolvers = {
                     description: args.input.description,
                     body: args.input.body,
                     tags: args.input.tags,
+                    published: args.input.published,
                     user: {
                         connect: { id: userId }
                     }
@@ -217,7 +250,8 @@ export const resolvers = {
                     title: args.input.title,
                     description: args.input.description,
                     body: args.input.body,
-                    tags: args.input.tags
+                    tags: args.input.tags,
+                    published: args.input.published
                 },
                 where: {
                     userId,
@@ -235,10 +269,31 @@ export const resolvers = {
                 data: {
                     title: args.input.title,
                     description: args.input.description,
-                    body: args.input.body,
+                    body: args.input.body as Prisma.JsonObject,
+                    published: args.input.published,
                     guide: {
-                        connect: { id: args.input.guide.id }
+                        connect: { id: args.input.guideId }
                     }
+                }
+            })
+        },
+        updateQuiz: async (
+            _: never,
+            args: MutationInput<UpdateQuizInput>,
+            context: Context
+        ): PromiseMaybe<Guides> => {
+            const userId = await verifyUser(context)
+
+            return context.prisma.guides.update({
+                data: {
+                    title: args.input.title,
+                    description: args.input.description,
+                    body: args.input.body as Prisma.JsonObject,
+                    published: args.input.published
+                },
+                where: {
+                    userId,
+                    id: args.input.id
                 }
             })
         },
@@ -255,8 +310,7 @@ export const resolvers = {
                     lastName: args.input.lastName,
                     email: args.input.email,
                     password: args.input.password,
-                    favoriteTopics: args.input.favoriteTopics,
-                    updated_ts: new Date()
+                    favoriteTopics: args.input.favoriteTopics
                 },
                 where: {
                     id: userId
