@@ -1,5 +1,11 @@
 import type { Context } from '../context'
-import { Prisma, type Guides, type Quizzes, type Users } from '@prisma/client'
+import {
+    Prisma,
+    type Guides,
+    type QuizAnswers,
+    type Quizzes,
+    type Users
+} from '@prisma/client'
 import { generateToken } from './auth'
 import { GraphQLError } from 'graphql'
 import { jsonScalar } from './scalars'
@@ -82,6 +88,11 @@ interface GenerateQuizInput {
     guideId: string
 }
 
+interface SaveQuizAnswersInput {
+    quizid: string
+    answers: InputJsonObject
+}
+
 const verifyUser = async (context: Context): Promise<string> => {
     const userId = await context.currentUserId
     console.log(userId)
@@ -109,6 +120,15 @@ export const resolvers = {
         ): Promise<PromiseMaybe<Quizzes>> => {
             return context.prisma.quizzes.findUnique({
                 where: { guideId: parent.id }
+            })
+        },
+        user: async (
+            parent: Guides,
+            _args: never,
+            context: Context
+        ): Promise<PromiseMaybe<Users>> => {
+            return context.prisma.users.findUnique({
+                where: { id: parent.userId }
             })
         }
     },
@@ -145,6 +165,21 @@ export const resolvers = {
                 where: {
                     userId: args.userId,
                     body: { search: args.search }
+                }
+            })
+        },
+        async QuizAnswers(
+            _: never,
+            args: {
+                quizId?: string
+            },
+            context: Context
+        ): Promise<PromiseMaybe<QuizAnswers[]>> {
+            const userId = await verifyUser(context)
+            return context.prisma.quizAnswers.findMany({
+                where: {
+                    userId,
+                    quizId: args.quizId
                 }
             })
         },
@@ -289,7 +324,7 @@ export const resolvers = {
                 }
             })
         },
-        async generateQuize(
+        async generateQuiz(
             _: never,
             args: MutationInput<GenerateQuizInput>,
             context: Context
@@ -318,6 +353,25 @@ export const resolvers = {
                 return quiz.body as GenreatedQuiz
             }
             return {} as GenreatedQuiz
+        },
+        async saveQuizAnswers(
+            _: never,
+            args: MutationInput<SaveQuizAnswersInput>,
+            context: Context
+        ): Promise<QuizAnswers> {
+            const userId = await verifyUser(context)
+
+            return context.prisma.quizAnswers.create({
+                data: {
+                    answers: args.input.answers,
+                    quiz: {
+                        connect: { id: args.input.quizid }
+                    },
+                    user: {
+                        connect: { id: userId }
+                    }
+                }
+            })
         }
     }
 }

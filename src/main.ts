@@ -1,11 +1,17 @@
 import { ApolloServer } from '@apollo/server'
 import { startStandaloneServer } from '@apollo/server/standalone'
 import { type Context, prisma } from './context'
-import { resolvers, userTypeDef, guideTypeDef, quizTypeDef } from './graphql'
+import {
+    resolvers,
+    userTypeDef,
+    guideTypeDef,
+    quizTypeDef,
+    quizanswersTypeDef
+} from './graphql'
 import { verifyToken } from './graphql/auth'
 import { OpenAIAPI } from './graphql/datasources'
 const server = new ApolloServer({
-    typeDefs: [userTypeDef, guideTypeDef, quizTypeDef],
+    typeDefs: [userTypeDef, guideTypeDef, quizTypeDef, quizanswersTypeDef],
     resolvers,
     includeStacktraceInErrorResponses: false
 })
