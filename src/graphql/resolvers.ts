@@ -161,7 +161,7 @@ export const resolvers = {
                 }
             }
         },
-        async genrateQuizeWithOpenAI(
+        async genrateQuize(
             _: never,
             args: MutationInput<string>,
             context: Context

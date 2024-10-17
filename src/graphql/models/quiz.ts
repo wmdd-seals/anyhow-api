@@ -11,7 +11,7 @@ export const quizTypeDef = gql`
     }
 
     type Query {
-        genrateQuizeWithOpenAI(input: String!): JSON!
+        genrateQuize(input: String!): JSON!
     }
 
     type Mutation {
