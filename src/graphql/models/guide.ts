@@ -19,6 +19,7 @@ export const guideTypeDef = gql`
 
     type Mutation {
         createGuide(input: GuideCreationInput!): Guide!
+        updateGuide(input: UpdateGuideInput!): Guide!
     }
 
     input UserInput {
@@ -30,5 +31,13 @@ export const guideTypeDef = gql`
         description: String!
         body: String!
         tags: JSON!
+    }
+
+    input UpdateGuideInput {
+        id: ID!
+        title: String
+        description: String
+        body: String
+        tags: JSON
     }
 `
