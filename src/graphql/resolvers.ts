@@ -42,6 +42,14 @@ interface GuideCreationInput {
     tags: InputJsonObject
 }
 
+interface UpdateGuideInput {
+    id: string
+    body?: string
+    title?: string
+    tags?: InputJsonObject
+    description?: string
+}
+
 interface QuizCreationInput {
     guideId: string
     title: string
@@ -192,6 +200,26 @@ export const resolvers = {
                     user: {
                         connect: { id: userId }
                     }
+                }
+            })
+        },
+        updateGuide: async (
+            _: never,
+            args: MutationInput<UpdateGuideInput>,
+            context: Context
+        ): PromiseMaybe<Guides> => {
+            const userId = await verifyUser(context)
+
+            return context.prisma.guides.update({
+                data: {
+                    title: args.input.title,
+                    description: args.input.description,
+                    body: args.input.body,
+                    tags: args.input.tags
+                },
+                where: {
+                    userId,
+                    id: args.input.id
                 }
             })
         },
