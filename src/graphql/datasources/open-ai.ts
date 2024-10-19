@@ -6,7 +6,7 @@ import { zodResponseFormat } from 'openai/helpers/zod'
 export type GenreatedQuiz = z.infer<typeof genreatedQuiz>
 
 const question = z.object({
-    question: z.string(),
+    questionTitle: z.string(),
     options: z.string().array(),
     correctAnswerIndex: z.number()
 })

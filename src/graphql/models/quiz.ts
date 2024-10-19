@@ -61,7 +61,7 @@ export const quizTypeDef = gql`
     }
 
     type Question {
-        question: String!
+        questionTitle: String!
         options: [String]!
         correctAnswerIndex: Int!
     }

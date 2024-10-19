@@ -168,7 +168,7 @@ export const resolvers = {
                 }
             })
         },
-        async QuizAnswers(
+        async quizAnswers(
             _: never,
             args: {
                 quizId?: string
