@@ -17,7 +17,7 @@ export const quizTypeDef = gql`
     type Mutation {
         createQuiz(input: QuizCreationInput!): Quiz!
         updateQuiz(input: UpdateQuizInput!): Quiz!
-        generateQuiz(input: GenerateQuizInput!): JSON!
+        generateQuiz(input: GenerateQuizInput!): Quiz!
     }
 
     input QuizCreationInput {

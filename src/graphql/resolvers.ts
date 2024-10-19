@@ -328,7 +328,7 @@ export const resolvers = {
             _: never,
             args: MutationInput<GenerateQuizInput>,
             context: Context
-        ): Promise<GenreatedQuiz> {
+        ): Promise<Quizzes> {
             console.log(context.currentUserId)
             const userId = await verifyUser(context)
             const guide = await context.prisma.guides.findUnique({
@@ -350,9 +350,9 @@ export const resolvers = {
                     }
                 })
 
-                return quiz.body as GenreatedQuiz
+                return quiz
             }
-            return {} as GenreatedQuiz
+            return {} as Quizzes
         },
         async saveQuizAnswers(
             _: never,
