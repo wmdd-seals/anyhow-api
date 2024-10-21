@@ -46,7 +46,7 @@ export const quizTypeDef = gql`
     }
 
     input QuestionInput {
-        question: String!
+        questionTitle: String!
         options: [String]!
         correctAnswerIndex: Int!
     }
