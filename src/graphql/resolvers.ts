@@ -204,7 +204,7 @@ export const resolvers = {
             })
 
             return JSON.parse(
-                JSON.stringify(chatHistory?.message)
+                JSON.stringify(chatHistory?.message ?? [])
             ) as ChatCompletionMessageParam[]
         },
         async signIn(
