@@ -11,6 +11,7 @@ import { GraphQLError } from 'graphql'
 import { jsonScalar } from './scalars'
 import type { InputJsonObject } from '@prisma/client/runtime/library'
 import type { GenreatedQuiz } from './datasources'
+import type { ChatCompletionMessageParam } from 'openai/resources'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -93,9 +94,13 @@ interface SaveQuizAnswersInput {
     answers: InputJsonObject
 }
 
+interface GuideChatRequest {
+    guideId: string
+    prompt: string
+}
+
 const verifyUser = async (context: Context): Promise<string> => {
     const userId = await context.currentUserId
-    console.log(userId)
     if (!userId || userId === 'Invalid token') {
         throw new GraphQLError(
             'You are not authorized to perform this action.',
@@ -117,7 +122,7 @@ export const resolvers = {
             parent: Guides,
             _args: never,
             context: Context
-        ): Promise<PromiseMaybe<Quizzes>> => {
+        ): PromiseMaybe<Quizzes> => {
             return context.prisma.quizzes.findUnique({
                 where: { guideId: parent.id }
             })
@@ -126,7 +131,7 @@ export const resolvers = {
             parent: Guides,
             _args: never,
             context: Context
-        ): Promise<PromiseMaybe<Users>> => {
+        ): PromiseMaybe<Users> => {
             return context.prisma.users.findUnique({
                 where: { id: parent.userId }
             })
@@ -148,7 +153,7 @@ export const resolvers = {
             _: never,
             args: { id: string },
             context: Context
-        ): Promise<PromiseMaybe<Guides>> {
+        ): PromiseMaybe<Guides> {
             return context.prisma.guides.findUnique({
                 where: { id: args.id }
             })
@@ -160,7 +165,7 @@ export const resolvers = {
                 search?: string
             },
             context: Context
-        ): Promise<PromiseMaybe<Guides[]>> {
+        ): PromiseMaybe<Guides[]> {
             return context.prisma.guides.findMany({
                 where: {
                     userId: args.userId,
@@ -174,7 +179,7 @@ export const resolvers = {
                 quizId?: string
             },
             context: Context
-        ): Promise<PromiseMaybe<QuizAnswers[]>> {
+        ): PromiseMaybe<QuizAnswers[]> {
             const userId = await verifyUser(context)
             return context.prisma.quizAnswers.findMany({
                 where: {
@@ -182,6 +187,25 @@ export const resolvers = {
                     quizId: args.quizId
                 }
             })
+        },
+        async chathistory(
+            _: never,
+            args: {
+                guideId?: string
+            },
+            context: Context
+        ): PromiseMaybe<ChatCompletionMessageParam[]> {
+            const userId = await verifyUser(context)
+            const chatHistory = await context.prisma.chatHistory.findUnique({
+                where: {
+                    userId,
+                    guideId: args.guideId
+                }
+            })
+
+            return JSON.parse(
+                JSON.stringify(chatHistory?.message)
+            ) as ChatCompletionMessageParam[]
         },
         async signIn(
             _: never,
@@ -288,10 +312,10 @@ export const resolvers = {
             _: never,
             args: MutationInput<UpdateQuizInput>,
             context: Context
-        ): PromiseMaybe<Guides> => {
-            const userId = await verifyUser(context)
+        ): PromiseMaybe<Quizzes> => {
+            // const userId = await verifyUser(context)
 
-            return context.prisma.guides.update({
+            return context.prisma.quizzes.update({
                 data: {
                     title: args.input.title,
                     description: args.input.description,
@@ -299,7 +323,6 @@ export const resolvers = {
                     published: args.input.published
                 },
                 where: {
-                    userId,
                     id: args.input.id
                 }
             })
@@ -329,7 +352,6 @@ export const resolvers = {
             args: MutationInput<GenerateQuizInput>,
             context: Context
         ): Promise<Quizzes> {
-            console.log(context.currentUserId)
             const userId = await verifyUser(context)
             const guide = await context.prisma.guides.findUnique({
                 where: {
@@ -337,22 +359,30 @@ export const resolvers = {
                     id: args.input.guideId
                 }
             })
-            if (guide) {
-                const genreatedquiz = await context.dataSources.openAI.chat(
-                    guide.body
-                )
-                const quiz = await context.prisma.quizzes.create({
-                    data: {
-                        body: genreatedquiz as Prisma.JsonObject,
-                        guide: {
-                            connect: { id: guide.id }
+
+            if (!guide) {
+                throw new GraphQLError(
+                    'No matching guide found for the given Guide ID',
+                    {
+                        extensions: {
+                            code: 'BAD_USER_INPUT'
                         }
                     }
-                })
-
-                return quiz
+                )
             }
-            return {} as Quizzes
+            const genreatedquiz = await context.dataSources.openAI.chat(
+                guide.body
+            )
+            const quiz = await context.prisma.quizzes.create({
+                data: {
+                    body: genreatedquiz as Prisma.JsonObject,
+                    guide: {
+                        connect: { id: guide.id }
+                    }
+                }
+            })
+
+            return quiz
         },
         async saveQuizAnswers(
             _: never,
@@ -372,6 +402,91 @@ export const resolvers = {
                     }
                 }
             })
+        },
+        async guideChat(
+            _: never,
+            args: MutationInput<GuideChatRequest>,
+            context: Context
+        ): PromiseMaybe<ChatCompletionMessageParam> {
+            const userId = await verifyUser(context)
+
+            const guide = await context.prisma.guides.findUnique({
+                where: {
+                    userId,
+                    id: args.input.guideId
+                }
+            })
+
+            if (!guide) {
+                throw new GraphQLError(
+                    'No matching guide found for the given Guide ID',
+                    {
+                        extensions: {
+                            code: 'BAD_USER_INPUT'
+                        }
+                    }
+                )
+            }
+
+            const chatHistory = await context.prisma.chatHistory.findUnique({
+                where: {
+                    userId,
+                    guideId: args.input.guideId
+                }
+            })
+
+            const chatmessages = JSON.parse(
+                JSON.stringify(chatHistory?.message ?? [])
+            ) as ChatCompletionMessageParam[]
+
+            chatmessages.push({
+                role: 'user',
+                content: args.input.prompt
+            })
+
+            if (typeof chatmessages[0].content !== 'string') {
+                return null
+            }
+
+            chatmessages[0].content = `${guide.body}  ${chatmessages[0].content}`
+            const response =
+                await context.dataSources.openAI.guideChat(chatmessages)
+
+            const responseText =
+                response.content ?? response.refusal ?? 'No response'
+
+            const responseObj = {
+                role: 'assistant',
+                content: responseText
+            } as ChatCompletionMessageParam
+
+            chatmessages.push(responseObj)
+            chatmessages[0].content.replaceAll(guide.body, '')
+            if (chatHistory) {
+                await context.prisma.chatHistory.update({
+                    data: {
+                        message: chatmessages as unknown as Prisma.JsonObject
+                    },
+                    where: {
+                        userId,
+                        id: chatHistory.id
+                    }
+                })
+            } else {
+                await context.prisma.chatHistory.create({
+                    data: {
+                        message: chatmessages as unknown as Prisma.JsonObject,
+                        user: {
+                            connect: { id: userId }
+                        },
+                        guide: {
+                            connect: { id: args.input.guideId }
+                        }
+                    }
+                })
+            }
+
+            return responseObj
         }
     }
 }

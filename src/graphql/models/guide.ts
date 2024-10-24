@@ -12,14 +12,25 @@ export const guideTypeDef = gql`
         user: User!
     }
 
+    type ChatResponse {
+        role: String!
+        content: String!
+    }
     type Query {
         guide(id: ID!): Guide!
         guides(userId: ID, search: String): [Guide]!
+        chathistory(guideId: String!): [ChatResponse!]!
     }
 
     type Mutation {
         createGuide(input: GuideCreationInput!): Guide!
         updateGuide(input: UpdateGuideInput!): Guide!
+        guideChat(input: GuideChatRequest): ChatResponse!
+    }
+
+    input GuideChatRequest {
+        guideId: String!
+        prompt: String!
     }
 
     input UserInput {

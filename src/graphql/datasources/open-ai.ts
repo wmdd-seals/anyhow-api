@@ -1,5 +1,9 @@
 import { OpenAI } from 'openai'
-import type { ChatCompletionUserMessageParam } from 'openai/resources'
+import type {
+    ChatCompletionMessage,
+    ChatCompletionMessageParam,
+    ChatCompletionUserMessageParam
+} from 'openai/resources'
 import { z } from 'zod'
 import { zodResponseFormat } from 'openai/helpers/zod'
 
@@ -36,8 +40,18 @@ export class OpenAIAPI {
             response_format: zodResponseFormat(genreatedQuiz, 'quiz')
         })
 
-        console.log(response.choices[0].message.parsed)
-
         return response.choices[0].message.parsed as GenreatedQuiz
+    }
+
+    public async guideChat(
+        chatmessages: ChatCompletionMessageParam[]
+    ): Promise<ChatCompletionMessage> {
+        const respone = await this.client.chat.completions.create({
+            messages: chatmessages,
+            model: 'gpt-4o',
+            stop: ['\n']
+        })
+
+        return respone.choices[0].message
     }
 }
