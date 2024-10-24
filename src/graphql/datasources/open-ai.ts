@@ -48,8 +48,7 @@ export class OpenAIAPI {
     ): Promise<ChatCompletionMessage> {
         const respone = await this.client.chat.completions.create({
             messages: chatmessages,
-            model: 'gpt-4o',
-            stop: ['\n']
+            model: 'gpt-4o'
         })
 
         return respone.choices[0].message
