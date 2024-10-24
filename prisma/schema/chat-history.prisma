@@ -1,0 +1,12 @@
+model ChatHistory{
+    id String @id @default(uuid())
+    message Json
+    created_ts DateTime @default(now()) @db.Timestamptz(3)
+    updated_ts DateTime @updatedAt @db.Timestamptz(3)
+    guide Guides @relation(fields: [guideId], references: [id], onDelete: Cascade)
+    guideId String @map("guide_id") @unique
+    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String @map("user_id")
+    @@map("chat_history")
+    @@unique([userId,guideId])
+}

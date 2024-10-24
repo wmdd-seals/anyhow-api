@@ -11,5 +11,6 @@ model Guides {
     updated_ts DateTime @updatedAt @db.Timestamptz(3)
     quizzes Quizzes?
     guidereviews GuideReview[]
+    messages ChatHistory[]
     @@map("guides")
 }
