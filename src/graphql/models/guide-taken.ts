@@ -17,7 +17,7 @@ export const guideTakenTypeDef = gql`
 
     type Query {
         guideTaken(id: ID!): GuideTaken!
-        guideTakenCounts(userId: ID!): [GuideTakenCounts]!
+        guideTakenCounts: [GuideTakenCounts]!
     }
 
     type Mutation {

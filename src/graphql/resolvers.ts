@@ -248,14 +248,15 @@ export const resolvers = {
         },
         async guideTakenCounts(
             _: never,
-            args: { userId: string },
+            _args: never,
             context: Context
         ): Promise<PromiseMaybe<{ date: string; guideCount: number }[]>> {
+            const userId = await verifyUser(context)
             const counts = await context.prisma.guideTaken.groupBy({
                 by: ['createdAt', 'guideId'],
                 _count: true,
                 where: {
-                    userId: args.userId
+                    userId: userId
                 }
             })
 
