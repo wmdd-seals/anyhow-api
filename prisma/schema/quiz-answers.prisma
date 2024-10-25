@@ -1,12 +1,13 @@
-model QuizAnswers{
-    id String @id @default(uuid())
-    answers Json @map("answer")
-    created_ts DateTime @default(now()) @db.Timestamptz(3)
-    updated_ts DateTime @updatedAt @db.Timestamptz(3)
-    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId String @map("user_id")
-    quiz Quizzes @relation(fields: [quizId], references: [id], onDelete: Cascade)
-    quizId String @map("quiz_id")
-    @@map("quiz_answers")
-    @@unique([userId,quizId])
+model QuizAnswers {
+  id         String   @id @default(uuid())
+  answers    Json     @map("answer")
+  created_ts DateTime @default(now()) @db.Timestamptz(3)
+  updated_ts DateTime @updatedAt @db.Timestamptz(3)
+  userId     String   @map("user_id")
+  quizId     String   @map("quiz_id")
+  quiz       Quizzes  @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user       Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, quizId])
+  @@map("quiz_answers")
 }
