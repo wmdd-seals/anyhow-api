@@ -412,7 +412,6 @@ export const resolvers = {
 
             const guide = await context.prisma.guides.findUnique({
                 where: {
-                    userId,
                     id: args.input.guideId
                 }
             })
@@ -448,7 +447,10 @@ export const resolvers = {
                 return null
             }
 
-            chatmessages[0].content = `${guide.body}  ${chatmessages[0].content}`
+            chatmessages.unshift({
+                role: 'system',
+                content: `${guide.body} Assist the user based on this content`
+            })
             const response =
                 await context.dataSources.openAI.guideChat(chatmessages)
 
@@ -461,7 +463,7 @@ export const resolvers = {
             } as ChatCompletionMessageParam
 
             chatmessages.push(responseObj)
-            chatmessages[0].content.replaceAll(guide.body, '')
+            chatmessages.shift()
             if (chatHistory) {
                 await context.prisma.chatHistory.update({
                     data: {
