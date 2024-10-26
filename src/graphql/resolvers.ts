@@ -391,17 +391,34 @@ export const resolvers = {
         ): Promise<QuizAnswers> {
             const userId = await verifyUser(context)
 
-            return context.prisma.quizAnswers.create({
-                data: {
-                    answers: args.input.answers,
-                    quiz: {
-                        connect: { id: args.input.quizid }
-                    },
-                    user: {
-                        connect: { id: userId }
-                    }
+            const quizAnswers = await context.prisma.quizAnswers.findUnique({
+                where: {
+                    userId_quizId: { userId, quizId: args.input.quizid }
                 }
             })
+
+            if (quizAnswers) {
+                return context.prisma.quizAnswers.update({
+                    data: {
+                        answers: args.input.answers
+                    },
+                    where: {
+                        userId_quizId: { userId, quizId: args.input.quizid }
+                    }
+                })
+            } else {
+                return context.prisma.quizAnswers.create({
+                    data: {
+                        answers: args.input.answers,
+                        quiz: {
+                            connect: { id: args.input.quizid }
+                        },
+                        user: {
+                            connect: { id: userId }
+                        }
+                    }
+                })
+            }
         },
         async guideChat(
             _: never,

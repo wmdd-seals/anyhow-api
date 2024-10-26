@@ -1,6 +1,8 @@
 model QuizAnswers{
     id String @id @default(uuid())
     answers Json @map("answer")
+    isCompleted Boolean @default(false)
+    completionTime  DateTime? 
     created_ts DateTime @default(now()) @db.Timestamptz(3)
     updated_ts DateTime @updatedAt @db.Timestamptz(3)
     user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
