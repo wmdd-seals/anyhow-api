@@ -1,11 +1,12 @@
-model GuideReview{
-    id String @id @default(uuid())
-    rating Int
-    guide Guides @relation(fields: [guideId], references: [id], onDelete: Cascade)
-    guideId String @map("guide_id") @unique
-    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId String @map("user_id")
-    created_ts DateTime @default(now()) @db.Timestamptz(3)
-    updated_ts DateTime @updatedAt @db.Timestamptz(3)
-    @@map("guide_reviews")
+model GuideReview {
+  id         String   @id @default(uuid())
+  rating     Int
+  guideId    String   @unique @map("guide_id")
+  userId     String   @map("user_id")
+  created_ts DateTime @default(now()) @db.Timestamptz(3)
+  updated_ts DateTime @updatedAt @db.Timestamptz(3)
+  guide      Guides   @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  user       Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("guide_reviews")
 }
