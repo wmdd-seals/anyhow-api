@@ -6,19 +6,12 @@ import {
     userTypeDef,
     guideTypeDef,
     quizTypeDef,
-    quizanswersTypeDef,
-    guideTakenTypeDef
+    quizanswersTypeDef
 } from './graphql'
 import { verifyToken } from './graphql/auth'
 import { OpenAIAPI } from './graphql/datasources'
 const server = new ApolloServer({
-    typeDefs: [
-        userTypeDef,
-        guideTypeDef,
-        quizTypeDef,
-        quizanswersTypeDef,
-        guideTakenTypeDef
-    ],
+    typeDefs: [userTypeDef, guideTypeDef, quizTypeDef, quizanswersTypeDef],
     resolvers,
     includeStacktraceInErrorResponses: false
 })

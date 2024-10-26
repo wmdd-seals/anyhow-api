@@ -4,8 +4,7 @@ import {
     type Guides,
     type QuizAnswers,
     type Quizzes,
-    type Users,
-    type GuideTaken
+    type Users
 } from '@prisma/client'
 import { generateToken } from './auth'
 import { GraphQLError } from 'graphql'
@@ -93,10 +92,6 @@ interface GenerateQuizInput {
 interface SaveQuizAnswersInput {
     quizid: string
     answers: InputJsonObject
-}
-
-interface GuideTakenCreationInput {
-    guideId: string
 }
 
 interface GuideChatRequest {
@@ -236,55 +231,6 @@ export const resolvers = {
                     message: 'Invalid email or password'
                 }
             }
-        },
-        async guideTaken(
-            _: never,
-            args: { id: string },
-            context: Context
-        ): Promise<PromiseMaybe<GuideTaken>> {
-            return context.prisma.guideTaken.findUnique({
-                where: { id: args.id }
-            })
-        },
-        async guideTakenCounts(
-            _: never,
-            _args: never,
-            context: Context
-        ): Promise<PromiseMaybe<{ date: string; guideCount: number }[]>> {
-            const userId = await verifyUser(context)
-            const counts = await context.prisma.guideTaken.groupBy({
-                by: ['createdAt', 'guideId'],
-                _count: true,
-                where: {
-                    userId: userId
-                }
-            })
-
-            const groupedCounts: {
-                [date: string]: { [guideId: string]: number } | null
-            } = counts.reduce<{
-                [date: string]: { [guideId: string]: number } | null
-            }>((acc, count) => {
-                const date = count.createdAt.toISOString().split('T')[0]
-                if (!acc[date]) {
-                    acc[date] = {}
-                }
-                if (!acc[date][count.guideId]) {
-                    acc[date][count.guideId] = 0
-                }
-                if (acc[date][count.guideId] === 0) {
-                    acc[date][count.guideId] += count._count
-                }
-                return acc
-            }, {})
-
-            return Object.entries(groupedCounts).map(([date, guideCounts]) => ({
-                date,
-                guideCount: Object.values(guideCounts || {}).reduce(
-                    (total, count) => total + count,
-                    0
-                )
-            }))
         }
     },
     Mutation: {
@@ -473,19 +419,6 @@ export const resolvers = {
                     }
                 })
             }
-        },
-        async addGuideTaken(
-            _: never,
-            args: MutationInput<GuideTakenCreationInput>,
-            context: Context
-        ): Promise<GuideTaken> {
-            const userId = await verifyUser(context)
-            return context.prisma.guideTaken.create({
-                data: {
-                    userId: userId,
-                    guideId: args.input.guideId
-                }
-            })
         },
         async guideChat(
             _: never,

@@ -1,17 +1,16 @@
 model Guides {
-  id           String       @id @default(uuid())
-  userId       String       @map("user_id")
-  title        String
-  description  String
-  created_ts   DateTime     @default(now()) @db.Timestamptz(3)
-  updated_ts   DateTime     @updatedAt @db.Timestamptz(3)
-  tags         Json
-  body         String
-  published    Boolean      @default(false)
-  messages     ChatHistory?
-  guidereviews GuideReview?
-  user         Users        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  quizzes      Quizzes?
-  guideTaken   GuideTaken[]
-  @@map("guides")
+    id String @id @default(uuid())
+    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String @map("user_id")
+    title String
+    description String
+    body String
+    tags Json
+    published Boolean @default(false)
+    created_ts DateTime @default(now()) @db.Timestamptz(3)
+    updated_ts DateTime @updatedAt @db.Timestamptz(3)
+    quizzes Quizzes?
+    guidereviews GuideReview[]
+    messages ChatHistory[]
+    @@map("guides")
 }
