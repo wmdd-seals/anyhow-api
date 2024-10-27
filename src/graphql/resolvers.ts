@@ -92,6 +92,7 @@ interface GenerateQuizInput {
 interface SaveQuizAnswersInput {
     quizid: string
     answers: InputJsonObject
+    iscompleted: boolean
 }
 
 interface GuideChatRequest {
@@ -400,7 +401,11 @@ export const resolvers = {
             if (quizAnswers) {
                 return context.prisma.quizAnswers.update({
                     data: {
-                        answers: args.input.answers
+                        answers: args.input.answers,
+                        isCompleted: args.input.iscompleted,
+                        completionTime: args.input.iscompleted
+                            ? new Date()
+                            : null
                     },
                     where: {
                         userId_quizId: { userId, quizId: args.input.quizid }
@@ -410,6 +415,10 @@ export const resolvers = {
                 return context.prisma.quizAnswers.create({
                     data: {
                         answers: args.input.answers,
+                        isCompleted: args.input.iscompleted,
+                        completionTime: args.input.iscompleted
+                            ? new Date()
+                            : null,
                         quiz: {
                             connect: { id: args.input.quizid }
                         },

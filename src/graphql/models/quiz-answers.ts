@@ -7,11 +7,13 @@ export const quizanswersTypeDef = gql`
         quiz: Quiz!
         answers: JSON!
         user: User!
+        iscompleted: Boolean!
     }
 
     input SaveQuizAnswersInput {
         quizid: ID!
         answers: JSON!
+        iscompleted: Boolean
     }
 
     type Query {
