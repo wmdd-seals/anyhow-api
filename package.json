@@ -17,6 +17,7 @@
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.11.1",
+    "@types/cors": "^2.8.17",
     "@types/node": "^22.7.3",
     "eslint": "^9.11.1",
     "eslint-config-prettier": "^9.1.0",
@@ -31,6 +32,7 @@
     "@apollo/datasource-rest": "^6.3.0",
     "@apollo/server": "^4.11.0",
     "@prisma/client": "^5.20.0",
+    "cors": "^2.8.5",
     "graphql": "^16.9.0",
     "graphql-tag": "^2.12.6",
     "jose": "^5.9.3",

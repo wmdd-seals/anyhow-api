@@ -3,7 +3,7 @@ import { Readable } from 'stream'
 
 const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/
 
-const blobConversion = (base64String: unknown): Readable => {
+const streamConversion = (base64String: unknown): Readable => {
     if (typeof base64String !== 'string' || !base64String.trim()) {
         throw new TypeError('Invalid Base64 string')
     }
@@ -22,9 +22,9 @@ const blobConversion = (base64String: unknown): Readable => {
 const isValidBase64 = (str: string): boolean => {
     return base64Regex.test(str) && str.length % 4 === 0
 }
-export const blobScalar = new GraphQLScalarType({
-    name: 'Blob',
-    description: 'A file stream Blob',
-    serialize: blobConversion,
-    parseValue: blobConversion
+export const streamScalar = new GraphQLScalarType({
+    name: 'Stream',
+    description: 'Base64 to Stream Conversion',
+    serialize: streamConversion,
+    parseValue: streamConversion
 })

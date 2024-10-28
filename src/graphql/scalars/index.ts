@@ -1,2 +1,2 @@
 export * from './json-scalar'
-export * from './blob-scalar'
+export * from './stream-scalar'

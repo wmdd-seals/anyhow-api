@@ -1,17 +1,19 @@
 import { gql } from 'graphql-tag'
 
 export const uploadTypeDef = gql`
-    scalar Blob
+    scalar Stream
     type File {
         name: String
-        base64Data: Blob
+        base64Data: Stream
         id: ID
+        mimeType: String
     }
 
     input FileInfo {
         name: String!
         base64Data: String!
         guideId: String!
+        mimeType: String!
     }
 
     type Query {

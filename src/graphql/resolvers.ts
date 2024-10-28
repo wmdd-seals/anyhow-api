@@ -9,7 +9,7 @@ import {
 } from '@prisma/client'
 import { generateToken } from './auth'
 import { GraphQLError } from 'graphql'
-import { jsonScalar, blobScalar } from './scalars'
+import { jsonScalar, streamScalar } from './scalars'
 import type { InputJsonObject } from '@prisma/client/runtime/library'
 import type { GenreatedQuiz } from './datasources'
 import type { ChatCompletionMessageParam } from 'openai/resources'
@@ -105,6 +105,7 @@ interface FileInfo {
     name: string
     base64Data: string
     guideId: string
+    mimeType: string
 }
 
 const verifyUser = async (context: Context): Promise<string> => {
@@ -125,7 +126,7 @@ const verifyUser = async (context: Context): Promise<string> => {
 
 export const resolvers = {
     JSON: jsonScalar,
-    Blob: blobScalar,
+    Stream: streamScalar,
     Guide: {
         quiz: async (
             parent: Guides,
@@ -552,6 +553,7 @@ export const resolvers = {
             return context.prisma.image.create({
                 data: {
                     base64Data: args.input.base64Data,
+                    mimeType: args.input.mimeType,
                     name: args.input.name,
                     guide: {
                         connect: { id: args.input.guideId }

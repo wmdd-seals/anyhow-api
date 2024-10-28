@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 import type { OpenAIAPI } from './graphql/datasources'
+import type { BaseContext } from '@apollo/server'
 
 interface openAI {
     openAI: OpenAIAPI
 }
 
-export interface Context {
+export interface Context extends BaseContext {
     prisma: PrismaClient
     currentUserId?: Promise<string>
     dataSources: openAI
