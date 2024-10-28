@@ -579,6 +579,20 @@ export const resolvers = {
                     }
                 }
             })
+        },
+        async removeImage(
+            _: never,
+            args: { id: string },
+            context: Context
+        ): Promise<boolean> {
+            await verifyUser(context)
+            await context.prisma.image.delete({
+                where: {
+                    id: args.id
+                }
+            })
+
+            return true
         }
     }
 }

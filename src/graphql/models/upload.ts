@@ -24,5 +24,6 @@ export const uploadTypeDef = gql`
     type Mutation {
         uploadImage(input: FileInfo!): File!
         uploadCoverImage(input: FileInfo!): File!
+        removeImage(id: String): Boolean
     }
 `
