@@ -543,7 +543,7 @@ export const resolvers = {
 
             return responseObj
         },
-        async uploadBase64File(
+        async uploadImage(
             _: never,
             args: MutationInput<FileInfo>,
             context: Context
@@ -552,6 +552,25 @@ export const resolvers = {
 
             return context.prisma.image.create({
                 data: {
+                    base64Data: args.input.base64Data,
+                    mimeType: args.input.mimeType,
+                    name: args.input.name,
+                    guide: {
+                        connect: { id: args.input.guideId }
+                    }
+                }
+            })
+        },
+        async uploadCoverImage(
+            _: never,
+            args: MutationInput<FileInfo>,
+            context: Context
+        ): PromiseMaybe<Image> {
+            await verifyUser(context)
+
+            return context.prisma.image.create({
+                data: {
+                    id: args.input.guideId,
                     base64Data: args.input.base64Data,
                     mimeType: args.input.mimeType,
                     name: args.input.name,

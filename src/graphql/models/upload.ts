@@ -22,6 +22,7 @@ export const uploadTypeDef = gql`
     }
 
     type Mutation {
-        uploadBase64File(input: FileInfo!): File!
+        uploadImage(input: FileInfo!): File!
+        uploadCoverImage(input: FileInfo!): File!
     }
 `
