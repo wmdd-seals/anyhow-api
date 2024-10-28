@@ -1,10 +1,11 @@
 import { gql } from 'graphql-tag'
 
 export const uploadTypeDef = gql`
+    scalar Blob
     type File {
-        name: String!
-        base64Data: String!
-        id: ID!
+        name: String
+        base64Data: Blob
+        id: ID
     }
 
     input FileInfo {

@@ -3,18 +3,18 @@ import { gql } from 'graphql-tag'
 export const guideTypeDef = gql`
     scalar JSON
     type Guide {
-        id: ID!
+        id: ID
         title: String
         description: String
         body: String
         quiz: Quiz
-        tags: JSON!
-        user: User!
+        tags: JSON
+        user: User
     }
 
     type ChatResponse {
-        role: String!
-        content: String!
+        role: String
+        content: String
     }
     type Query {
         guide(id: ID!): Guide!

@@ -9,7 +9,7 @@ import {
 } from '@prisma/client'
 import { generateToken } from './auth'
 import { GraphQLError } from 'graphql'
-import { jsonScalar } from './scalars'
+import { jsonScalar, blobScalar } from './scalars'
 import type { InputJsonObject } from '@prisma/client/runtime/library'
 import type { GenreatedQuiz } from './datasources'
 import type { ChatCompletionMessageParam } from 'openai/resources'
@@ -125,6 +125,7 @@ const verifyUser = async (context: Context): Promise<string> => {
 
 export const resolvers = {
     JSON: jsonScalar,
+    Blob: blobScalar,
     Guide: {
         quiz: async (
             parent: Guides,

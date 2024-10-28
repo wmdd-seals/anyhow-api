@@ -3,7 +3,7 @@ import { gql } from 'graphql-tag'
 export const quizTypeDef = gql`
     scalar JSON
     type Quiz {
-        id: ID!
+        id: ID
         guide: Guide
         title: String
         description: String
