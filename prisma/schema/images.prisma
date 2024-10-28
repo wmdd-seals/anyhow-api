@@ -1,0 +1,8 @@
+model Image{
+    id String @id @default(uuid())
+    name String
+    base64Data String
+    guide Guides @relation(fields: [guideId], references: [id], onDelete: Cascade)
+    guideId String @map("guide_id") @unique
+    @@map("images")
+}

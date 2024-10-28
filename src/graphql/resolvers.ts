@@ -2,6 +2,7 @@ import type { Context } from '../context'
 import {
     Prisma,
     type Guides,
+    type Image,
     type QuizAnswers,
     type Quizzes,
     type Users
@@ -98,6 +99,12 @@ interface SaveQuizAnswersInput {
 interface GuideChatRequest {
     guideId: string
     prompt: string
+}
+
+interface FileInfo {
+    name: string
+    base64Data: string
+    guideId: string
 }
 
 const verifyUser = async (context: Context): Promise<string> => {
@@ -232,6 +239,24 @@ export const resolvers = {
                     message: 'Invalid email or password'
                 }
             }
+        },
+        async image(
+            _: never,
+            args: { id: string },
+            context: Context
+        ): PromiseMaybe<Image> {
+            return context.prisma.image.findUnique({
+                where: { id: args.id }
+            })
+        },
+        async images(
+            _: never,
+            args: { guideId: string },
+            context: Context
+        ): PromiseMaybe<Image[]> {
+            return context.prisma.image.findMany({
+                where: { guideId: args.guideId }
+            })
         }
     },
     Mutation: {
@@ -515,6 +540,23 @@ export const resolvers = {
             }
 
             return responseObj
+        },
+        async uploadBase64File(
+            _: never,
+            args: MutationInput<FileInfo>,
+            context: Context
+        ): PromiseMaybe<Image> {
+            await verifyUser(context)
+
+            return context.prisma.image.create({
+                data: {
+                    base64Data: args.input.base64Data,
+                    name: args.input.name,
+                    guide: {
+                        connect: { id: args.input.guideId }
+                    }
+                }
+            })
         }
     }
 }
