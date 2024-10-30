@@ -1,0 +1,12 @@
+model GuideCompleted {
+  id             String   @id @default(uuid())
+  guideId        String   @map("guide_id")
+  userId         String   @map("user_id")
+  createdAt      DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+
+  guide          Guides   @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  user           Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, guideId])
+    @@map("guide_completed")
+}

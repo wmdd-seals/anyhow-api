@@ -8,6 +8,7 @@ import {
     guideTypeDef,
     quizTypeDef,
     quizanswersTypeDef,
+    guideCompletedTypeDef,
     uploadTypeDef
 } from './graphql'
 import { verifyToken } from './graphql/auth'
@@ -27,6 +28,7 @@ const server = new ApolloServer<Context>({
         guideTypeDef,
         quizTypeDef,
         quizanswersTypeDef,
+        guideCompletedTypeDef,
         uploadTypeDef
     ],
     resolvers,

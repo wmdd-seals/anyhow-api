@@ -1,6 +1,7 @@
 import type { Context } from '../context'
 import {
     Prisma,
+    type GuideCompleted,
     type Guides,
     type Image,
     type QuizAnswers,
@@ -182,6 +183,46 @@ export const resolvers = {
                     body: { search: args.search }
                 }
             })
+        },
+        async guideCompletedCounts(
+            _: never,
+            args: { input: { start: string; end: string } },
+            context: Context
+        ): Promise<{ date: string; count: number }[]> {
+            // const userId = await verifyUser(context)
+
+            const completedGuides = await context.prisma.guideCompleted.groupBy(
+                {
+                    by: ['createdAt'],
+                    where: {
+                        userId: '8f268463-2933-45e0-b1b5-205dafa6b7ed',
+                        createdAt: {
+                            gte: new Date(args.input.start),
+                            lte: new Date(args.input.end)
+                        }
+                    },
+                    _count: {
+                        _all: true
+                    }
+                }
+            )
+
+            const accumulatedCounts = completedGuides.reduce(
+                (acc, record) => {
+                    const date = record.createdAt.toISOString().split('T')[0]
+                    if (!acc[date]) {
+                        acc[date] = 0
+                    }
+                    acc[date] += record._count._all
+                    return acc
+                },
+                {} as Record<string, number>
+            )
+
+            return Object.entries(accumulatedCounts).map(([date, count]) => ({
+                date,
+                count
+            }))
         },
         async quizAnswers(
             _: never,
@@ -542,6 +583,20 @@ export const resolvers = {
             }
 
             return responseObj
+        },
+        async storeGuideCompleted(
+            _: never,
+            args: MutationInput<{ guideId: string }>,
+            context: Context
+        ): PromiseMaybe<GuideCompleted> {
+            // const userId = await verifyUser(context)
+
+            return context.prisma.guideCompleted.create({
+                data: {
+                    userId: '8f268463-2933-45e0-b1b5-205dafa6b7ed',
+                    guideId: args.input.guideId
+                }
+            })
         },
         async uploadImage(
             _: never,
