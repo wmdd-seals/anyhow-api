@@ -1,6 +1,7 @@
 import type { Context } from '../context'
 import {
     Prisma,
+    type GuideCompleted,
     type Guides,
     type Image,
     type QuizAnswers,
@@ -17,6 +18,10 @@ import type { ChatCompletionMessageParam } from 'openai/resources'
 type PromiseMaybe<T> = Promise<T | null>
 
 type MutationInput<T> = {
+    input: T
+}
+
+type QueryInput<T> = {
     input: T
 }
 
@@ -74,6 +79,16 @@ interface UpdateQuizInput {
     description?: string
     body?: GenreatedQuiz
     published?: boolean
+}
+
+interface GuideCompletedDateRange {
+    start: string
+    end: string
+}
+
+type GuideCompletedCountsResult = {
+    date: string
+    count: number
 }
 
 interface UserSingIn {
@@ -182,6 +197,60 @@ export const resolvers = {
                     body: { search: args.search }
                 }
             })
+        },
+        async guideCompletedCounts(
+            _: never,
+            args: QueryInput<GuideCompletedDateRange>,
+            context: Context
+        ): Promise<GuideCompletedCountsResult[]> {
+            const userId = await verifyUser(context)
+            console.log(userId, { ...args })
+            const completedGuides = await context.prisma.guideCompleted.groupBy(
+                {
+                    by: ['createdAt', 'userId'],
+                    where: {
+                        userId: userId,
+                        createdAt: {
+                            gte: new Date(args.input.start),
+                            lte: new Date(args.input.end)
+                        }
+                    },
+                    _count: {
+                        _all: true
+                    }
+                }
+            )
+
+            const accumulatedCounts = completedGuides.reduce(
+                (acc, record) => {
+                    const date = record.createdAt.toISOString().split('T')[0]
+                    if (!acc[date]) {
+                        acc[date] = 0
+                    }
+                    acc[date] += record._count._all
+                    return acc
+                },
+                {} as Record<string, number>
+            )
+
+            const startDate = new Date(args.input.start)
+            const endDate = new Date(args.input.end)
+            for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0]
+                if (!accumulatedCounts[dateStr]) {
+                    accumulatedCounts[dateStr] = 0
+                }
+            }
+
+            return Object.entries(accumulatedCounts)
+                .sort(
+                    ([dateA], [dateB]) =>
+                        new Date(dateA).getTime() - new Date(dateB).getTime()
+                )
+                .map(([date, count]) => ({
+                    date,
+                    count
+                }))
         },
         async quizAnswers(
             _: never,
@@ -542,6 +611,20 @@ export const resolvers = {
             }
 
             return responseObj
+        },
+        async storeGuideCompleted(
+            _: never,
+            args: MutationInput<{ guideId: string }>,
+            context: Context
+        ): PromiseMaybe<GuideCompleted> {
+            const userId = await verifyUser(context)
+
+            return context.prisma.guideCompleted.create({
+                data: {
+                    userId,
+                    guideId: args.input.guideId
+                }
+            })
         },
         async uploadImage(
             _: never,

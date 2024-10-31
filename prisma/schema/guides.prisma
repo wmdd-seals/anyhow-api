@@ -12,7 +12,7 @@ model Guides {
     quizzes Quizzes?
     guidereviews GuideReview[]
     messages ChatHistory[]
-    guideTaken   GuideTaken[]
+    guideCompleted   GuideCompleted[]
     images Image[]
     @@map("guides")
 }
