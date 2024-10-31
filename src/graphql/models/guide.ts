@@ -17,8 +17,8 @@ export const guideTypeDef = gql`
         content: String
     }
     type Query {
-        guide(id: ID!): Guide!
-        guides(userId: ID, search: String): [Guide]!
+        guide(id: ID!): Guide
+        guides(userId: ID, search: String): [Guide]
         chathistory(guideId: String!): [ChatResponse!]!
     }
 

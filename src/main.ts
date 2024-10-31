@@ -75,3 +75,13 @@ app.use(
 
 await new Promise<void>(resolve => httpServer.listen(port, resolve))
 console.log(`🚀 Server ready at http://localhost:4000/`)
+
+// Shut down connection on server shutdown
+process.on('SIGINT', async () => {
+    await prisma.$disconnect()
+    process.exit(0)
+})
+process.on('SIGTERM', async () => {
+    await prisma.$disconnect()
+    process.exit(0)
+})
