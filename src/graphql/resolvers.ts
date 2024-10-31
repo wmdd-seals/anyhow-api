@@ -589,11 +589,11 @@ export const resolvers = {
             args: MutationInput<{ guideId: string }>,
             context: Context
         ): PromiseMaybe<GuideCompleted> {
-            // const userId = await verifyUser(context)
+            const userId = await verifyUser(context)
 
             return context.prisma.guideCompleted.create({
                 data: {
-                    userId: '8f268463-2933-45e0-b1b5-205dafa6b7ed',
+                    userId,
                     guideId: args.input.guideId
                 }
             })
