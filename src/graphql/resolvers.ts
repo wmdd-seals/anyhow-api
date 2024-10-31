@@ -21,6 +21,10 @@ type MutationInput<T> = {
     input: T
 }
 
+type QueryInput<T> = {
+    input: T
+}
+
 interface UserCreateInput {
     firstName: string
     middleName?: string
@@ -75,6 +79,16 @@ interface UpdateQuizInput {
     description?: string
     body?: GenreatedQuiz
     published?: boolean
+}
+
+interface GuideCompletedDateRange {
+    start: string
+    end: string
+}
+
+type GuideCompletedCountsResult = {
+    date: string
+    count: number
 }
 
 interface UserSingIn {
@@ -186,16 +200,16 @@ export const resolvers = {
         },
         async guideCompletedCounts(
             _: never,
-            args: { input: { start: string; end: string } },
+            args: QueryInput<GuideCompletedDateRange>,
             context: Context
-        ): Promise<{ date: string; count: number }[]> {
-            // const userId = await verifyUser(context)
-
+        ): Promise<GuideCompletedCountsResult[]> {
+            const userId = await verifyUser(context)
+            console.log(userId, { ...args })
             const completedGuides = await context.prisma.guideCompleted.groupBy(
                 {
-                    by: ['createdAt'],
+                    by: ['createdAt', 'userId'],
                     where: {
-                        userId: '8f268463-2933-45e0-b1b5-205dafa6b7ed',
+                        userId: userId,
                         createdAt: {
                             gte: new Date(args.input.start),
                             lte: new Date(args.input.end)
@@ -219,10 +233,24 @@ export const resolvers = {
                 {} as Record<string, number>
             )
 
-            return Object.entries(accumulatedCounts).map(([date, count]) => ({
-                date,
-                count
-            }))
+            const startDate = new Date(args.input.start)
+            const endDate = new Date(args.input.end)
+            for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0]
+                if (!accumulatedCounts[dateStr]) {
+                    accumulatedCounts[dateStr] = 0
+                }
+            }
+
+            return Object.entries(accumulatedCounts)
+                .sort(
+                    ([dateA], [dateB]) =>
+                        new Date(dateA).getTime() - new Date(dateB).getTime()
+                )
+                .map(([date, count]) => ({
+                    date,
+                    count
+                }))
         },
         async quizAnswers(
             _: never,

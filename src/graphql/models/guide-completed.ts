@@ -9,7 +9,7 @@ export const guideCompletedTypeDef = gql`
         createdAt: String
     }
 
-    type DailyGuideCompletedCount {
+    type GuideCompletedCountsResult {
         date: String
         count: Int
     }
@@ -21,7 +21,7 @@ export const guideCompletedTypeDef = gql`
     type Query {
         guideCompletedCounts(
             input: GuideCompletedDateRange
-        ): [DailyGuideCompletedCount!]!
+        ): [GuideCompletedCountsResult!]!
     }
 
     type Mutation {
