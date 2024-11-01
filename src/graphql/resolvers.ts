@@ -198,6 +198,22 @@ export const resolvers = {
                 }
             })
         },
+        async guideCompletedList(
+            _: never,
+            _args: never,
+            context: Context
+        ): PromiseMaybe<GuideCompleted[]> {
+            const userId = await verifyUser(context)
+            return context.prisma.guideCompleted.findMany({
+                where: {
+                    userId: userId
+                },
+                include: {
+                    guide: true,
+                    user: true
+                }
+            })
+        },
         async guideCompletedCounts(
             _: never,
             args: QueryInput<GuideCompletedDateRange>,

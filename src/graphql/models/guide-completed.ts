@@ -7,6 +7,8 @@ export const guideCompletedTypeDef = gql`
         guideId: ID
         userId: ID
         createdAt: String
+        guide: Guide
+        user: User
     }
 
     type GuideCompletedCountsResult {
@@ -22,6 +24,7 @@ export const guideCompletedTypeDef = gql`
         guideCompletedCounts(
             input: GuideCompletedDateRange
         ): [GuideCompletedCountsResult!]!
+        guideCompletedList: [GuideCompleted!]!
     }
 
     type Mutation {
