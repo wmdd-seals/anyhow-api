@@ -91,6 +91,10 @@ type GuideCompletedCountsResult = {
     count: number
 }
 
+type CheckIfGuideCompletedInput = {
+    guideId: string
+}
+
 interface UserSingIn {
     token: string
     message: string
@@ -198,6 +202,21 @@ export const resolvers = {
                 }
             })
         },
+        async checkIfGuideCompleted(
+            _: never,
+            args: QueryInput<CheckIfGuideCompletedInput>,
+            context: Context
+        ): PromiseMaybe<GuideCompleted> {
+            const userId = await verifyUser(context)
+            return context.prisma.guideCompleted.findUnique({
+                where: {
+                    userId_guideId: {
+                        userId,
+                        guideId: args.input.guideId
+                    }
+                }
+            })
+        },
         async guideCompletedList(
             _: never,
             _args: never,
@@ -220,15 +239,14 @@ export const resolvers = {
             context: Context
         ): Promise<GuideCompletedCountsResult[]> {
             const userId = await verifyUser(context)
-            console.log(userId, { ...args })
             const completedGuides = await context.prisma.guideCompleted.groupBy(
                 {
                     by: ['createdAt', 'userId'],
                     where: {
                         userId: userId,
                         createdAt: {
-                            gte: new Date(args.input.start),
-                            lte: new Date(args.input.end)
+                            gte: new Date(args.input.start + 'T00:00:00'),
+                            lte: new Date(args.input.end + 'T23:59:59')
                         }
                     },
                     _count: {

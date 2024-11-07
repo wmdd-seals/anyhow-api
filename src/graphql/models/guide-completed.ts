@@ -20,11 +20,18 @@ export const guideCompletedTypeDef = gql`
         guideId: ID!
     }
 
+    input CheckIfGuideCompletedInput {
+        guideId: ID
+    }
+
     type Query {
         guideCompletedCounts(
             input: GuideCompletedDateRange
         ): [GuideCompletedCountsResult!]!
         guideCompletedList: [GuideCompleted!]!
+        checkIfGuideCompleted(
+            input: CheckIfGuideCompletedInput
+        ): GuideCompleted!
     }
 
     type Mutation {
