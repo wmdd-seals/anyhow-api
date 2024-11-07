@@ -245,8 +245,8 @@ export const resolvers = {
                     where: {
                         userId: userId,
                         createdAt: {
-                            gte: new Date(args.input.start),
-                            lte: new Date(args.input.end)
+                            gte: new Date(args.input.start + 'T00:00:00'),
+                            lte: new Date(args.input.end + 'T23:59:59')
                         }
                     },
                     _count: {
