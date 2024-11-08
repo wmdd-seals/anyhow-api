@@ -14,6 +14,7 @@ import { jsonScalar, streamScalar } from './scalars'
 import type { InputJsonObject } from '@prisma/client/runtime/library'
 import type { GenreatedQuiz } from './datasources'
 import type { ChatCompletionMessageParam } from 'openai/resources'
+import { adjustToUTC } from '../utils/dateConverter'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -239,14 +240,25 @@ export const resolvers = {
             context: Context
         ): Promise<GuideCompletedCountsResult[]> {
             const userId = await verifyUser(context)
+
+            // HOTFIX: set the timezone to Vancouver
+            const vancouverTimeZone = 'America/Vancouver'
+
+            const startDate = new Date(args.input.start + 'T00:00:00')
+            const endDate = new Date(args.input.end + 'T23:59:59')
+
+            // HOTFIX: convert the time range to UTC timezone
+            const startUTC = adjustToUTC(startDate, vancouverTimeZone)
+            const endUTC = adjustToUTC(endDate, vancouverTimeZone)
+
             const completedGuides = await context.prisma.guideCompleted.groupBy(
                 {
                     by: ['createdAt', 'userId'],
                     where: {
                         userId: userId,
                         createdAt: {
-                            gte: new Date(args.input.start + 'T00:00:00'),
-                            lte: new Date(args.input.end + 'T23:59:59')
+                            gte: startUTC,
+                            lte: endUTC
                         }
                     },
                     _count: {
@@ -257,7 +269,11 @@ export const resolvers = {
 
             const accumulatedCounts = completedGuides.reduce(
                 (acc, record) => {
-                    const date = record.createdAt.toISOString().split('T')[0]
+                    // HOTFIX: convert the time range to UTC timezone
+                    const date = new Date(record.createdAt).toLocaleDateString(
+                        'en-CA',
+                        { timeZone: vancouverTimeZone }
+                    )
                     if (!acc[date]) {
                         acc[date] = 0
                     }
@@ -267,10 +283,10 @@ export const resolvers = {
                 {} as Record<string, number>
             )
 
-            const startDate = new Date(args.input.start)
-            const endDate = new Date(args.input.end)
             for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-                const dateStr = d.toISOString().split('T')[0]
+                const dateStr = d.toLocaleDateString('en-CA', {
+                    timeZone: vancouverTimeZone
+                })
                 if (!accumulatedCounts[dateStr]) {
                     accumulatedCounts[dateStr] = 0
                 }
