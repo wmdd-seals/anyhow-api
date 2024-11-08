@@ -31,6 +31,17 @@ export const guideTypeDef = gql`
         createGuide(input: GuideCreationInput!): Guide!
         updateGuide(input: UpdateGuideInput!): Guide!
         guideChat(input: GuideChatRequest): ChatResponse!
+        reviewGuide(input: ReviewGuideInput!): Boolean!
+        revokeGuideReview(input: RevokeGuideReviewInput!): Boolean!
+    }
+
+    input ReviewGuideInput {
+        id: ID!
+        liked: Boolean!
+    }
+
+    input RevokeGuideReviewInput {
+        id: ID!
     }
 
     input GuideChatRequest {
