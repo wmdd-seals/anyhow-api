@@ -69,7 +69,9 @@ app.use(
         context: async ({ req }): Promise<Context> =>
             Promise.resolve({
                 prisma,
-                currentUserId: verifyToken(req.headers.authorization || ''),
+                currentUserId: await verifyToken(
+                    req.headers.authorization || ''
+                ),
                 dataSources: { openAI: new OpenAIAPI() }
             })
     })

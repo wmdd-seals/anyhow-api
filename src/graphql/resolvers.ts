@@ -15,6 +15,7 @@ import type { InputJsonObject } from '@prisma/client/runtime/library'
 import type { GenreatedQuiz } from './datasources'
 import type { ChatCompletionMessageParam } from 'openai/resources'
 import { adjustToUTC } from '../utils/dateConverter'
+import type { Maybe } from 'graphql/jsutils/Maybe'
 
 type PromiseMaybe<T> = Promise<T | null>
 
@@ -128,8 +129,13 @@ interface FileInfo {
     mimeType: string
 }
 
-const verifyUser = async (context: Context): Promise<string> => {
-    const userId = await context.currentUserId
+type GuideWithLikes = Guides & {
+    liked: Maybe<boolean>
+}
+
+const verifyUser = (context: Context): string => {
+    const userId = context.currentUserId
+
     if (!userId || userId === 'Invalid token') {
         throw new GraphQLError(
             'You are not authorized to perform this action.',
@@ -173,7 +179,7 @@ export const resolvers = {
             _args: never,
             context: Context
         ): PromiseMaybe<Users> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
 
             return context.prisma.users.findUnique({
                 where: { id: userId }
@@ -183,10 +189,26 @@ export const resolvers = {
             _: never,
             args: { id: string },
             context: Context
-        ): PromiseMaybe<Guides> {
-            return context.prisma.guides.findUnique({
+        ): PromiseMaybe<GuideWithLikes> {
+            const guide = await context.prisma.guides.findUnique({
                 where: { id: args.id }
             })
+
+            if (!guide) return null
+
+            const guideToReturn = guide as GuideWithLikes
+
+            if (context.currentUserId) {
+                const review = await context.prisma.guideReview.findFirst({
+                    where: { userId: context.currentUserId, guideId: guide.id }
+                })
+
+                if (review) {
+                    guideToReturn.liked = review.liked
+                }
+            }
+
+            return guideToReturn
         },
         async guides(
             _: never,
@@ -195,11 +217,29 @@ export const resolvers = {
                 search?: string
             },
             context: Context
-        ): PromiseMaybe<Guides[]> {
-            return context.prisma.guides.findMany({
+        ): PromiseMaybe<GuideWithLikes[]> {
+            const guides = await context.prisma.guides.findMany({
                 where: {
                     userId: args.userId,
                     body: { search: args.search }
+                }
+            })
+
+            if (!context.currentUserId) return guides as GuideWithLikes[]
+
+            const reviews = await context.prisma.guideReview.findMany({
+                where: {
+                    userId: context.currentUserId,
+                    guideId: { in: guides.map(guide => guide.id) }
+                }
+            })
+
+            return guides.map(guide => {
+                return {
+                    ...guide,
+                    liked: reviews.find(
+                        reviewedGuide => guide.id === reviewedGuide.id
+                    )?.liked
                 }
             })
         },
@@ -208,7 +248,7 @@ export const resolvers = {
             args: QueryInput<CheckIfGuideCompletedInput>,
             context: Context
         ): PromiseMaybe<GuideCompleted> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
             return context.prisma.guideCompleted.findUnique({
                 where: {
                     userId_guideId: {
@@ -223,7 +263,7 @@ export const resolvers = {
             _args: never,
             context: Context
         ): PromiseMaybe<GuideCompleted[]> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
             return context.prisma.guideCompleted.findMany({
                 where: {
                     userId: userId
@@ -239,7 +279,7 @@ export const resolvers = {
             args: QueryInput<GuideCompletedDateRange>,
             context: Context
         ): Promise<GuideCompletedCountsResult[]> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
 
             // HOTFIX: set the timezone to Vancouver
             const vancouverTimeZone = 'America/Vancouver'
@@ -309,7 +349,7 @@ export const resolvers = {
             },
             context: Context
         ): PromiseMaybe<QuizAnswers[]> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
             return context.prisma.quizAnswers.findMany({
                 where: {
                     userId,
@@ -324,7 +364,7 @@ export const resolvers = {
             },
             context: Context
         ): PromiseMaybe<ChatCompletionMessageParam[]> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
             const chatHistory = await context.prisma.chatHistory.findUnique({
                 where: {
                     userId,
@@ -401,7 +441,7 @@ export const resolvers = {
             args: MutationInput<GuideCreationInput>,
             context: Context
         ): PromiseMaybe<Guides> => {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
 
             return context.prisma.guides.create({
                 data: {
@@ -421,7 +461,7 @@ export const resolvers = {
             args: MutationInput<UpdateGuideInput>,
             context: Context
         ): PromiseMaybe<Guides> => {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
 
             return context.prisma.guides.update({
                 data: {
@@ -442,7 +482,7 @@ export const resolvers = {
             args: MutationInput<QuizCreationInput>,
             context: Context
         ): PromiseMaybe<Quizzes> => {
-            await verifyUser(context)
+            verifyUser(context)
             return context.prisma.quizzes.create({
                 data: {
                     title: args.input.title,
@@ -460,7 +500,7 @@ export const resolvers = {
             args: MutationInput<UpdateQuizInput>,
             context: Context
         ): PromiseMaybe<Quizzes> => {
-            // const userId = await verifyUser(context)
+            // const userId =  verifyUser(context)
 
             return context.prisma.quizzes.update({
                 data: {
@@ -479,7 +519,7 @@ export const resolvers = {
             args: MutationInput<UserProfile>,
             context: Context
         ): PromiseMaybe<Users> => {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
             return context.prisma.users.update({
                 data: {
                     firstName: args.input.firstName,
@@ -499,7 +539,7 @@ export const resolvers = {
             args: MutationInput<GenerateQuizInput>,
             context: Context
         ): Promise<Quizzes> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
             const guide = await context.prisma.guides.findUnique({
                 where: {
                     userId,
@@ -536,7 +576,7 @@ export const resolvers = {
             args: MutationInput<SaveQuizAnswersInput>,
             context: Context
         ): Promise<QuizAnswers> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
 
             const quizAnswers = await context.prisma.quizAnswers.findUnique({
                 where: {
@@ -580,7 +620,7 @@ export const resolvers = {
             args: MutationInput<GuideChatRequest>,
             context: Context
         ): PromiseMaybe<ChatCompletionMessageParam> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
 
             const guide = await context.prisma.guides.findUnique({
                 where: {
@@ -667,7 +707,7 @@ export const resolvers = {
             args: MutationInput<{ guideId: string }>,
             context: Context
         ): PromiseMaybe<GuideCompleted> {
-            const userId = await verifyUser(context)
+            const userId = verifyUser(context)
 
             return context.prisma.guideCompleted.create({
                 data: {
@@ -681,7 +721,7 @@ export const resolvers = {
             args: MutationInput<FileInfo>,
             context: Context
         ): PromiseMaybe<Image> {
-            await verifyUser(context)
+            verifyUser(context)
 
             return context.prisma.image.create({
                 data: {
@@ -699,7 +739,7 @@ export const resolvers = {
             args: MutationInput<FileInfo>,
             context: Context
         ): PromiseMaybe<Image> {
-            await verifyUser(context)
+            verifyUser(context)
 
             return context.prisma.image.create({
                 data: {
@@ -718,7 +758,7 @@ export const resolvers = {
             args: { id: string },
             context: Context
         ): Promise<boolean> {
-            await verifyUser(context)
+            verifyUser(context)
             await context.prisma.image.delete({
                 where: {
                     id: args.id

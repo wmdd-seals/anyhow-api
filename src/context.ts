@@ -8,7 +8,7 @@ interface openAI {
 
 export interface Context extends BaseContext {
     prisma: PrismaClient
-    currentUserId?: Promise<string>
+    currentUserId?: string
     dataSources: openAI
 }
 

@@ -7,6 +7,7 @@ export const guideTypeDef = gql`
         title: String
         description: String
         body: String
+        liked: Boolean
         quiz: Quiz
         tags: JSON
         user: User
