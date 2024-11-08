@@ -10,7 +10,7 @@ import {
 } from '@prisma/client'
 import { generateToken } from './auth'
 import { GraphQLError } from 'graphql'
-import { jsonScalar, streamScalar } from './scalars'
+import { jsonScalar, streamScalar, dateScalar } from './scalars'
 import type { InputJsonObject } from '@prisma/client/runtime/library'
 import type { GenreatedQuiz } from './datasources'
 import type { ChatCompletionMessageParam } from 'openai/resources'
@@ -153,6 +153,7 @@ const verifyUser = (context: Context): string => {
 export const resolvers = {
     JSON: jsonScalar,
     Stream: streamScalar,
+    Date: dateScalar,
     Guide: {
         quiz: async (
             parent: Guides,

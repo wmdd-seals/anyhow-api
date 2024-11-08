@@ -2,6 +2,8 @@ import { gql } from 'graphql-tag'
 
 export const guideTypeDef = gql`
     scalar JSON
+    scalar Date
+
     type Guide {
         id: ID
         title: String
@@ -11,6 +13,8 @@ export const guideTypeDef = gql`
         quiz: Quiz
         tags: JSON
         user: User
+        createdAt: Date
+        updatedAt: Date
     }
 
     type ChatResponse {

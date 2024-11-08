@@ -7,8 +7,8 @@ model Guides {
     body String
     tags Json
     published Boolean @default(false)
-    created_ts DateTime @default(now()) @db.Timestamptz(3)
-    updated_ts DateTime @updatedAt @db.Timestamptz(3)
+    createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_ts")
+    updatedAt DateTime @updatedAt @db.Timestamptz(3) @map("updated_ts")
     quizzes Quizzes?
     guidereviews GuideReview[]
     messages ChatHistory[]
