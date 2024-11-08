@@ -766,6 +766,39 @@ export const resolvers = {
             })
 
             return true
+        },
+        async reviewGuide(
+            _: never,
+            args: MutationInput<{ id: string; liked: boolean }>,
+            context: Context
+        ): Promise<boolean> {
+            const userId = verifyUser(context)
+
+            await context.prisma.guideReview.create({
+                data: {
+                    liked: args.input.liked,
+                    userId,
+                    guideId: args.input.id
+                }
+            })
+
+            return true
+        },
+        async revokeGuideReview(
+            _: never,
+            args: MutationInput<{ id: string }>,
+            context: Context
+        ): Promise<boolean> {
+            const userId = verifyUser(context)
+
+            await context.prisma.guideReview.delete({
+                where: {
+                    userId: userId,
+                    guideId: args.input.id
+                }
+            })
+
+            return true
         }
     }
 }
