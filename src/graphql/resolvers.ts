@@ -151,6 +151,14 @@ const verifyUser = (context: Context): string => {
     return userId
 }
 
+const getUserId = (context: Context): string | null => {
+    const userId = context.currentUserId
+    if (!userId || userId === 'Invalid token') {
+        return null
+    }
+    return userId
+}
+
 export const resolvers = {
     JSON: jsonScalar,
     Stream: streamScalar,
@@ -300,6 +308,30 @@ export const resolvers = {
 
                 return guideToReturn
             })
+        },
+        async guideViewCount(
+            _: never,
+            args: QueryInput<{ guideId: string }>,
+            context: Context
+        ): PromiseMaybe<{
+            guideId: string
+            count: number
+        }> {
+            const guideViews = await context.prisma.guideViews.findMany({
+                where: { guideId: args.input.guideId }
+            })
+
+            if (!guideViews.length) {
+                return {
+                    guideId: args.input.guideId,
+                    count: 0
+                }
+            }
+
+            return {
+                guideId: args.input.guideId,
+                count: guideViews.length
+            }
         },
         async bookmarks(
             _: never,
@@ -498,6 +530,27 @@ export const resolvers = {
         }
     },
     Mutation: {
+        storeGuideView: async (
+            _: never,
+            args: MutationInput<{ guideId: string }>,
+            context: Context
+        ): PromiseMaybe<{ id: string } | false> => {
+            const userId = getUserId(context)
+            try {
+                const guideView = await context.prisma.guideViews.create({
+                    data: {
+                        ...(userId ? { userId } : {}),
+                        guideId: args.input.guideId
+                    }
+                })
+
+                return {
+                    id: guideView.id
+                }
+            } catch {
+                return false
+            }
+        },
         addBookmark: async (
             _: never,
             args: MutationInput<{ guideId: string }>,

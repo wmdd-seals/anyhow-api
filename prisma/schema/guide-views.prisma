@@ -1,0 +1,10 @@
+model GuideViews {
+    id String @id @default(uuid())
+    guideId String @map("guide_id")
+    userId String? @map("user_id")
+    guide Guides @relation(fields: [guideId], references: [id], onDelete: Cascade)
+    user Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_ts")
+    updatedAt DateTime @updatedAt @db.Timestamptz(3) @map("updated_ts")
+    @@map("guide_views")
+}

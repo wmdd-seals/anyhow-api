@@ -9,7 +9,8 @@ import {
     quizTypeDef,
     quizanswersTypeDef,
     guideCompletedTypeDef,
-    uploadTypeDef
+    uploadTypeDef,
+    guideViewsTypeDef
 } from './graphql'
 import { verifyToken } from './graphql/auth'
 import { OpenAIAPI } from './graphql/datasources'
@@ -29,7 +30,8 @@ const server = new ApolloServer<Context>({
         quizTypeDef,
         quizanswersTypeDef,
         guideCompletedTypeDef,
-        uploadTypeDef
+        uploadTypeDef,
+        guideViewsTypeDef
     ],
     resolvers,
     includeStacktraceInErrorResponses: false,
