@@ -10,6 +10,7 @@ export const guideTypeDef = gql`
         description: String
         body: String
         liked: Boolean
+        rating: Int
         quiz: Quiz
         tags: JSON
         user: User

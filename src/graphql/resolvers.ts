@@ -130,6 +130,7 @@ interface FileInfo {
 }
 
 type GuideWithLikes = Guides & {
+    rating: Maybe<number>
     liked: Maybe<boolean>
 }
 
@@ -199,13 +200,28 @@ export const resolvers = {
 
             const guideToReturn = guide as GuideWithLikes
 
-            if (context.currentUserId) {
-                const review = await context.prisma.guideReview.findFirst({
-                    where: { userId: context.currentUserId, guideId: guide.id }
-                })
+            const guideReviews = await context.prisma.guideReview.findMany({
+                where: { guideId: guide.id }
+            })
 
-                if (review) {
-                    guideToReturn.liked = review.liked
+            if (guideReviews.length) {
+                guideToReturn.rating = Math.ceil(
+                    (100 *
+                        guideReviews.reduce<number>(
+                            (num, guide) => (guide.liked ? num + 1 : num),
+                            0
+                        )) /
+                        guideReviews.length
+                )
+
+                if (context.currentUserId) {
+                    const review = guideReviews.find(
+                        review => review.userId === context.currentUserId
+                    )?.liked
+
+                    if (typeof review === 'boolean') {
+                        guideToReturn.liked = review
+                    }
                 }
             }
 
@@ -226,8 +242,6 @@ export const resolvers = {
                 }
             })
 
-            if (!context.currentUserId) return guides as GuideWithLikes[]
-
             const reviews = await context.prisma.guideReview.findMany({
                 where: {
                     userId: context.currentUserId,
@@ -236,12 +250,33 @@ export const resolvers = {
             })
 
             return guides.map(guide => {
-                return {
-                    ...guide,
-                    liked: reviews.find(
-                        reviewedGuide => guide.id === reviewedGuide.id
-                    )?.liked
+                const guideReviews = reviews.filter(
+                    review => review.guideId === guide.id
+                )
+
+                const guideToReturn = {
+                    ...guide
+                } as GuideWithLikes
+
+                if (guideReviews.length) {
+                    if (context.currentUserId) {
+                        guideToReturn.liked = guideReviews.find(
+                            reviewedGuide =>
+                                reviewedGuide.userId === context.currentUserId
+                        )?.liked
+                    }
+
+                    guideToReturn.rating = Math.ceil(
+                        (100 *
+                            guideReviews.reduce<number>(
+                                (num, guide) => (guide.liked ? num + 1 : num),
+                                0
+                            )) /
+                            guideReviews.length
+                    )
                 }
+
+                return guideToReturn
             })
         },
         async checkIfGuideCompleted(
