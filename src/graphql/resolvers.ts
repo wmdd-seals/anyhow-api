@@ -775,13 +775,24 @@ export const resolvers = {
         ): Promise<boolean> {
             const userId = verifyUser(context)
 
-            await context.prisma.guideReview.create({
-                data: {
-                    liked: args.input.liked,
-                    userId,
-                    guideId: args.input.id
-                }
+            const review = await context.prisma.guideReview.findUnique({
+                where: { userId, guideId: args.input.id }
             })
+
+            if (review) {
+                await context.prisma.guideReview.update({
+                    data: { liked: args.input.liked },
+                    where: { id: review.id }
+                })
+            } else {
+                await context.prisma.guideReview.create({
+                    data: {
+                        liked: args.input.liked,
+                        userId,
+                        guideId: args.input.id
+                    }
+                })
+            }
 
             return true
         },
