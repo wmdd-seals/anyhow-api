@@ -17,7 +17,7 @@ import type { ChatCompletionMessageParam } from 'openai/resources'
 import { adjustToUTC } from '../utils/dateConverter'
 import type { Maybe } from 'graphql/jsutils/Maybe'
 
-type PromiseMaybe<T> = Promise<T | null>
+type PromiseMaybe<T> = Promise<T | null | undefined>
 
 type MutationInput<T> = {
     input: T
@@ -511,6 +511,17 @@ export const resolvers = {
                     userId,
                     id: args.input.id
                 }
+            })
+        },
+        removeGuide: async (
+            _: never,
+            args: MutationInput<{ id: string }>,
+            context: Context
+        ): PromiseMaybe<Guides> => {
+            const userId = verifyUser(context)
+
+            return context.prisma.guides.delete({
+                where: { userId, id: args.input.id }
             })
         },
         createQuiz: async (

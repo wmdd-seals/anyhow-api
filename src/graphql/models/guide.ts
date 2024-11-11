@@ -31,6 +31,7 @@ export const guideTypeDef = gql`
     type Mutation {
         createGuide(input: GuideCreationInput!): Guide!
         updateGuide(input: UpdateGuideInput!): Guide!
+        removeGuide(input: RemoveGuideInput!): Guide!
         guideChat(input: GuideChatRequest): ChatResponse!
         reviewGuide(input: ReviewGuideInput!): Boolean!
         revokeGuideReview(input: RevokeGuideReviewInput!): Boolean!
@@ -39,6 +40,10 @@ export const guideTypeDef = gql`
     input ReviewGuideInput {
         id: ID!
         liked: Boolean!
+    }
+
+    input RemoveGuideInput {
+        id: ID!
     }
 
     input RevokeGuideReviewInput {
