@@ -257,13 +257,17 @@ export const resolvers = {
             args: {
                 userId?: string
                 search?: string
+                published?: boolean | null | undefined
             },
             context: Context
         ): PromiseMaybe<Guides[]> {
             const guides = await context.prisma.guides.findMany({
                 where: {
                     userId: args.userId,
-                    body: { search: args.search }
+                    body: { search: args.search },
+                    ...(args.published !== null && args.published !== undefined
+                        ? { published: args.published }
+                        : {})
                 }
             })
 
