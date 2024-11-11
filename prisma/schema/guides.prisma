@@ -10,6 +10,7 @@ model Guides {
     createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_ts")
     updatedAt DateTime @updatedAt @db.Timestamptz(3) @map("updated_ts")
     quizzes Quizzes?
+    bookmarks Bookmarks[]
     guidereviews GuideReview[]
     messages ChatHistory[]
     guideCompleted   GuideCompleted[]

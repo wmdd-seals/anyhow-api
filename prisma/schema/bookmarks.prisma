@@ -1,0 +1,11 @@
+model Bookmarks {
+    guideId        String   @map("guide_id")
+    userId         String   @map("user_id")
+
+    guide          Guides   @relation(fields: [guideId], references: [id], onDelete: Cascade)
+    user           Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([userId, guideId])
+    @@unique([userId, guideId])
+    @@map("bookmarks")
+}

@@ -10,6 +10,7 @@ export const guideTypeDef = gql`
         description: String
         body: String
         liked: Boolean
+        bookmark: Boolean
         rating: Int
         quiz: Quiz
         tags: JSON
@@ -22,9 +23,11 @@ export const guideTypeDef = gql`
         role: String
         content: String
     }
+
     type Query {
         guide(id: ID!): Guide
         guides(userId: ID, search: String): [Guide]
+        bookmarks: [Guide]
         chathistory(guideId: String!): [ChatResponse!]!
     }
 
@@ -35,6 +38,8 @@ export const guideTypeDef = gql`
         guideChat(input: GuideChatRequest): ChatResponse!
         reviewGuide(input: ReviewGuideInput!): Boolean!
         revokeGuideReview(input: RevokeGuideReviewInput!): Boolean!
+        addBookmark(input: AddBookmarkInput!): Boolean!
+        removeBookmark(input: RemoveBookmarkInput!): Boolean!
     }
 
     input ReviewGuideInput {
@@ -44,6 +49,14 @@ export const guideTypeDef = gql`
 
     input RemoveGuideInput {
         id: ID!
+    }
+
+    input AddBookmarkInput {
+        guideId: ID!
+    }
+
+    input RemoveBookmarkInput {
+        guideId: ID!
     }
 
     input RevokeGuideReviewInput {

@@ -156,6 +156,42 @@ export const resolvers = {
     Stream: streamScalar,
     Date: dateScalar,
     Guide: {
+        bookmark: async (
+            parent: Guides,
+            _args: never,
+            context: Context
+        ): PromiseMaybe<boolean> => {
+            try {
+                const id = verifyUser(context)
+
+                const bookmark = await context.prisma.bookmarks.findUnique({
+                    where: {
+                        userId_guideId: { userId: id, guideId: parent.id }
+                    }
+                })
+
+                return !!bookmark
+            } catch {
+                return null
+            }
+        },
+        liked: async (
+            parent: Guides,
+            _args: never,
+            context: Context
+        ): PromiseMaybe<boolean> => {
+            try {
+                const id = verifyUser(context)
+
+                const review = await context.prisma.guideReview.findUnique({
+                    where: { userId: id, guideId: parent.id }
+                })
+
+                return review?.liked
+            } catch {
+                return null
+            }
+        },
         quiz: async (
             parent: Guides,
             _args: never,
@@ -191,21 +227,22 @@ export const resolvers = {
             _: never,
             args: { id: string },
             context: Context
-        ): PromiseMaybe<GuideWithLikes> {
+        ): PromiseMaybe<Guides> {
             const guide = await context.prisma.guides.findUnique({
                 where: { id: args.id }
             })
 
-            if (!guide) return null
-
-            const guideToReturn = guide as GuideWithLikes
-
             const guideReviews = await context.prisma.guideReview.findMany({
-                where: { guideId: guide.id }
+                where: { guideId: args.id }
             })
 
-            if (guideReviews.length) {
-                guideToReturn.rating = Math.ceil(
+            if (!guideReviews.length) {
+                return guide
+            }
+
+            return {
+                ...guide,
+                rating: Math.ceil(
                     (100 *
                         guideReviews.reduce<number>(
                             (num, guide) => (guide.liked ? num + 1 : num),
@@ -213,19 +250,7 @@ export const resolvers = {
                         )) /
                         guideReviews.length
                 )
-
-                if (context.currentUserId) {
-                    const review = guideReviews.find(
-                        review => review.userId === context.currentUserId
-                    )?.liked
-
-                    if (typeof review === 'boolean') {
-                        guideToReturn.liked = review
-                    }
-                }
-            }
-
-            return guideToReturn
+            } as Guides
         },
         async guides(
             _: never,
@@ -234,7 +259,7 @@ export const resolvers = {
                 search?: string
             },
             context: Context
-        ): PromiseMaybe<GuideWithLikes[]> {
+        ): PromiseMaybe<Guides[]> {
             const guides = await context.prisma.guides.findMany({
                 where: {
                     userId: args.userId,
@@ -259,13 +284,6 @@ export const resolvers = {
                 } as GuideWithLikes
 
                 if (guideReviews.length) {
-                    if (context.currentUserId) {
-                        guideToReturn.liked = guideReviews.find(
-                            reviewedGuide =>
-                                reviewedGuide.userId === context.currentUserId
-                        )?.liked
-                    }
-
                     guideToReturn.rating = Math.ceil(
                         (100 *
                             guideReviews.reduce<number>(
@@ -278,6 +296,25 @@ export const resolvers = {
 
                 return guideToReturn
             })
+        },
+        async bookmarks(
+            _: never,
+            _args: never,
+            context: Context
+        ): PromiseMaybe<Guides[]> {
+            const userId = verifyUser(context)
+
+            const bookmarks = await context.prisma.bookmarks.findMany({
+                where: { userId }
+            })
+
+            if (!bookmarks.length) return []
+
+            const guides = await context.prisma.guides.findMany({
+                where: { id: { in: bookmarks.map(b => b.guideId) } }
+            })
+
+            return guides
         },
         async checkIfGuideCompleted(
             _: never,
@@ -457,6 +494,48 @@ export const resolvers = {
         }
     },
     Mutation: {
+        addBookmark: async (
+            _: never,
+            args: MutationInput<{ guideId: string }>,
+            context: Context
+        ): PromiseMaybe<boolean> => {
+            const id = verifyUser(context)
+
+            try {
+                await context.prisma.bookmarks.create({
+                    data: {
+                        userId: id,
+                        guideId: args.input.guideId
+                    }
+                })
+
+                return true
+            } catch {
+                return false
+            }
+        },
+        removeBookmark: async (
+            _: never,
+            args: MutationInput<{ guideId: string }>,
+            context: Context
+        ): PromiseMaybe<boolean> => {
+            const id = verifyUser(context)
+
+            try {
+                await context.prisma.bookmarks.delete({
+                    where: {
+                        userId_guideId: {
+                            userId: id,
+                            guideId: args.input.guideId
+                        }
+                    }
+                })
+
+                return true
+            } catch {
+                return false
+            }
+        },
         signupUser: (
             _: never,
             args: MutationInput<UserCreateInput>,

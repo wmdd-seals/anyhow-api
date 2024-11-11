@@ -11,6 +11,7 @@ model Users {
     guides Guides[]
     quizzanswers QuizAnswers[]
     guidereviews GuideReview[]
+    bookmarks Bookmarks[]
     messages ChatHistory[]
     guideCompleted   GuideCompleted[]
     @@map("users")
