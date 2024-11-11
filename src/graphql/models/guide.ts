@@ -17,6 +17,7 @@ export const guideTypeDef = gql`
         user: User
         createdAt: Date
         updatedAt: Date
+        published: Boolean
     }
 
     type ChatResponse {
@@ -26,7 +27,7 @@ export const guideTypeDef = gql`
 
     type Query {
         guide(id: ID!): Guide
-        guides(userId: ID, search: String): [Guide]
+        guides(userId: ID, search: String, published: Boolean): [Guide]
         bookmarks: [Guide]
         chathistory(guideId: String!): [ChatResponse!]!
     }
