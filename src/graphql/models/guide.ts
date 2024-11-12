@@ -25,10 +25,16 @@ export const guideTypeDef = gql`
         content: String
     }
 
+    type DateCount {
+        date: String
+        count: Int
+    }
+
     type Query {
         guide(id: ID!): Guide
         guides(userId: ID, search: String, published: Boolean): [Guide]
         bookmarks: [Guide]
+        guideCreatedCountInDateRange(input: DateRangeInput!): [DateCount]!
         chathistory(guideId: String!): [ChatResponse!]!
     }
 
@@ -41,6 +47,11 @@ export const guideTypeDef = gql`
         revokeGuideReview(input: RevokeGuideReviewInput!): Boolean!
         addBookmark(input: AddBookmarkInput!): Boolean!
         removeBookmark(input: RemoveBookmarkInput!): Boolean!
+    }
+
+    input DateRangeInput {
+        start: String!
+        end: String!
     }
 
     input ReviewGuideInput {

@@ -310,6 +310,71 @@ export const resolvers = {
                 return guideToReturn
             })
         },
+        async guideCreatedCountInDateRange(
+            _: never,
+            args: QueryInput<{
+                start: string
+                end: string
+            }>,
+            context: Context
+        ): PromiseMaybe<{ date: string; count: number }[]> {
+            const userId = verifyUser(context)
+
+            // HOTFIX: set the timezone to Vancouver
+            const vancouverTimeZone = 'America/Vancouver'
+
+            const startDate = new Date(args.input.start + 'T00:00:00')
+            const endDate = new Date(args.input.end + 'T23:59:59')
+
+            // HOTFIX: convert the time range to UTC timezone
+            const startUTC = adjustToUTC(startDate, vancouverTimeZone)
+            const endUTC = adjustToUTC(endDate, vancouverTimeZone)
+
+            const guides = await context.prisma.guides.findMany({
+                where: {
+                    userId,
+                    createdAt: {
+                        gte: startUTC,
+                        lte: endUTC
+                    }
+                }
+            })
+
+            const accumulatedCounts = guides.reduce(
+                (acc, record) => {
+                    // HOTFIX: convert the time range to UTC timezone
+                    const date = new Date(record.createdAt).toLocaleDateString(
+                        'en-CA',
+                        { timeZone: vancouverTimeZone }
+                    )
+                    if (!acc[date]) {
+                        acc[date] = 0
+                    }
+                    acc[date] += 1
+                    return acc
+                },
+                {} as Record<string, number>
+            )
+
+            for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toLocaleDateString('en-CA', {
+                    timeZone: vancouverTimeZone
+                })
+                if (!accumulatedCounts[dateStr]) {
+                    accumulatedCounts[dateStr] = 0
+                }
+            }
+
+            return Object.entries(accumulatedCounts)
+                .sort(
+                    ([dateA], [dateB]) =>
+                        new Date(dateA).getTime() - new Date(dateB).getTime()
+                )
+                .map(([date, count]) => ({
+                    date,
+                    count
+                }))
+        },
         async guideViewCount(
             _: never,
             args: QueryInput<{ guideId: string }>,
