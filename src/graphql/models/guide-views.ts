@@ -20,9 +20,22 @@ export const guideViewsTypeDef = gql`
         guideId: ID!
     }
 
+    input GuideViewCountInDateRangeInput {
+        start: String!
+        end: String!
+    }
+
+    type GuideViewCountInDateRangeInputResult {
+        date: String
+        count: Int
+    }
+
     type Query {
         guideViewCount(input: GuideViewInput!): GuideViewResult!
         guideViews: [GuideViews!]!
+        guideViewCountInDateRange(
+            input: GuideViewCountInDateRangeInput!
+        ): [GuideViewCountInDateRangeInputResult!]!
     }
 
     type Mutation {
