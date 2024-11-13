@@ -603,6 +603,18 @@ export const resolvers = {
                 }
             })
         },
+        async quizAnswersByUser(
+            _: never,
+            args: {
+                userId?: string
+            },
+            context: Context
+        ): PromiseMaybe<QuizAnswers[]> {
+            const userId = args.userId || verifyUser(context)
+            return context.prisma.quizAnswers.findMany({
+                where: { userId: userId }
+            })
+        },
         async chathistory(
             _: never,
             args: {

@@ -18,6 +18,7 @@ export const quizanswersTypeDef = gql`
 
     type Query {
         quizAnswers(quizId: String): [QuizAnswers]!
+        quizAnswersByUser(userId: String): [QuizAnswers]!
     }
 
     type Mutation {
