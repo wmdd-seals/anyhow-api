@@ -15,8 +15,8 @@ export const guideTypeDef = gql`
         quiz: Quiz
         tags: JSON
         user: User
-        createdAt: Date
-        updatedAt: Date
+        createdAt: String
+        updatedAt: String
         published: Boolean
     }
 
