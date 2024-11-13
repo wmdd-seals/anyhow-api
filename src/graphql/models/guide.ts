@@ -15,8 +15,8 @@ export const guideTypeDef = gql`
         quiz: Quiz
         tags: JSON
         user: User
-        createdAt: Date
-        updatedAt: Date
+        createdAt: String
+        updatedAt: String
         published: Boolean
     }
 
@@ -35,8 +35,6 @@ export const guideTypeDef = gql`
         guides(userId: ID, search: String, published: Boolean): [Guide]
         bookmarks: [Guide]
         guideCreatedCountInDateRange(input: DateRangeInput!): [DateCount]!
-        chathistory(guideId: String!): [ChatResponse!]!
-    }
 
     type Mutation {
         createGuide(input: GuideCreationInput!): Guide!
