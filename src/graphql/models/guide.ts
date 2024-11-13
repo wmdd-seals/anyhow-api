@@ -30,11 +30,22 @@ export const guideTypeDef = gql`
         count: Int
     }
 
+    type ChatHistory {
+        id: ID
+        message: JSON
+        createdAt: String
+        updatedAt: String
+        guide: Guide
+        user: User
+    }
+
     type Query {
         guide(id: ID!): Guide
         guides(userId: ID, search: String, published: Boolean): [Guide]
         bookmarks: [Guide]
         guideCreatedCountInDateRange(input: DateRangeInput!): [DateCount]!
+        chathistory(guideId: ID!): ChatHistory
+    }
 
     type Mutation {
         createGuide(input: GuideCreationInput!): Guide!
