@@ -399,6 +399,20 @@ export const resolvers = {
                 count: guideViews.length
             }
         },
+        async guideViewCountByGuideId(
+            _: never,
+            args: QueryInput<{ guideId: string }>,
+            context: Context
+        ): PromiseMaybe<{ guideId: string; count: number }> {
+            const guideViews = await context.prisma.guideViews.findMany({
+                where: { guideId: args.input.guideId }
+            })
+
+            return {
+                guideId: args.input.guideId,
+                count: guideViews.length
+            }
+        },
         async guideViewCountInDateRange(
             _: never,
             args: QueryInput<{
