@@ -273,6 +273,7 @@ export const resolvers = {
             const guides = await context.prisma.guides.findMany({
                 where: {
                     userId: args.userId,
+                    title: { search: args.search },
                     body: { search: args.search },
                     ...(args.published !== null && args.published !== undefined
                         ? { published: args.published }
