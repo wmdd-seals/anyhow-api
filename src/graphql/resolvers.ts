@@ -1008,7 +1008,7 @@ export const resolvers = {
 
             chatmessages.unshift({
                 role: 'system',
-                content: `${guide.body} Assist the user based on this content in short`
+                content: `${guide.body} Assist the user based on this content in short not more than 100 words`
             })
             const response =
                 await context.dataSources.openAI.guideChat(chatmessages)
