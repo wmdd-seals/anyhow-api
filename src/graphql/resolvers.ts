@@ -283,7 +283,6 @@ export const resolvers = {
 
             const reviews = await context.prisma.guideReview.findMany({
                 where: {
-                    userId: context.currentUserId,
                     guideId: { in: guides.map(guide => guide.id) }
                 }
             })
