@@ -3,7 +3,6 @@ import {
     Prisma,
     type GuideCompleted,
     type Guides,
-    type GuideViews,
     type Image,
     type QuizAnswers,
     type Quizzes,
@@ -639,8 +638,10 @@ export const resolvers = {
             const userId = verifyUser(context)
             const chatHistory = await context.prisma.chatHistory.findUnique({
                 where: {
-                    userId,
-                    guideId: args.guideId
+                    userId_guideId: {
+                        userId,
+                        guideId: args.guideId ?? ''
+                    }
                 }
             })
 
@@ -987,11 +988,12 @@ export const resolvers = {
 
             const chatHistory = await context.prisma.chatHistory.findUnique({
                 where: {
-                    userId,
-                    guideId: args.input.guideId
+                    userId_guideId: {
+                        userId,
+                        guideId: args.input.guideId
+                    }
                 }
             })
-
             const chatmessages = JSON.parse(
                 JSON.stringify(chatHistory?.message ?? [])
             ) as ChatCompletionMessageParam[]
@@ -1022,6 +1024,7 @@ export const resolvers = {
 
             chatmessages.push(responseObj)
             chatmessages.shift()
+
             if (chatHistory) {
                 await context.prisma.chatHistory.update({
                     data: {
