@@ -274,9 +274,6 @@ export const resolvers = {
                     userId: args.userId,
                     title: { search: args.search },
                     body: { search: args.search },
-                    ...(args.search && {
-                        tags: { array_contains: [args.search ?? ''] }
-                    }),
                     ...(args.published !== null && args.published !== undefined
                         ? { published: args.published }
                         : {})
