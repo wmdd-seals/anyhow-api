@@ -12,7 +12,7 @@ export const quizanswersTypeDef = gql`
 
     input SaveQuizAnswersInput {
         quizid: ID!
-        answers: JSON!
+        answers: JSON
         iscompleted: Boolean
     }
 
