@@ -935,7 +935,7 @@ export const resolvers = {
                 return context.prisma.quizAnswers.update({
                     data: {
                         answers: args.input.answers,
-                        isCompleted: args.input.iscompleted,
+                        iscompleted: args.input.iscompleted,
                         completionTime: args.input.iscompleted
                             ? new Date()
                             : null
@@ -948,7 +948,7 @@ export const resolvers = {
                 return context.prisma.quizAnswers.create({
                     data: {
                         answers: args.input.answers,
-                        isCompleted: args.input.iscompleted,
+                        iscompleted: args.input.iscompleted,
                         completionTime: args.input.iscompleted
                             ? new Date()
                             : null,
