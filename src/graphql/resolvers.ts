@@ -271,12 +271,22 @@ export const resolvers = {
         ): PromiseMaybe<Guides[]> {
             const guides = await context.prisma.guides.findMany({
                 where: {
-                    userId: args.userId,
-                    title: { search: args.search },
-                    body: { search: args.search },
-                    ...(args.published !== null && args.published !== undefined
-                        ? { published: args.published }
-                        : {})
+                    OR: [
+                        { userId: args.userId },
+                        { title: { search: args.search } },
+                        { body: { search: args.search } },
+                        {
+                            ...(args.search && {
+                                tags: { array_contains: [args.search ?? ''] }
+                            })
+                        },
+                        {
+                            ...(args.published !== null &&
+                            args.published !== undefined
+                                ? { published: args.published }
+                                : {})
+                        }
+                    ]
                 }
             })
 
