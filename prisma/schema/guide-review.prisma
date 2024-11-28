@@ -2,10 +2,11 @@ model GuideReview {
     id String @id @default(uuid())
     liked Boolean
     guide Guides @relation(fields: [guideId], references: [id], onDelete: Cascade)
-    guideId String @map("guide_id") @unique
+    guideId String @map("guide_id")
     user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String @map("user_id")
     created_ts DateTime @default(now()) @db.Timestamptz(3)
     updated_ts DateTime @updatedAt @db.Timestamptz(3)
     @@map("guide_reviews")
+    @@unique([userId,guideId])
 }

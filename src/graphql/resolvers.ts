@@ -192,7 +192,12 @@ export const resolvers = {
                 const id = verifyUser(context)
 
                 const review = await context.prisma.guideReview.findUnique({
-                    where: { userId: id, guideId: parent.id }
+                    where: {
+                        userId_guideId: {
+                            userId: id,
+                            guideId: parent.id
+                        }
+                    }
                 })
 
                 return review?.liked
@@ -1140,7 +1145,12 @@ export const resolvers = {
             const userId = verifyUser(context)
 
             const review = await context.prisma.guideReview.findUnique({
-                where: { userId, guideId: args.input.id }
+                where: {
+                    userId_guideId: {
+                        userId,
+                        guideId: args.input.id
+                    }
+                }
             })
 
             if (review) {
@@ -1169,8 +1179,10 @@ export const resolvers = {
 
             await context.prisma.guideReview.delete({
                 where: {
-                    userId: userId,
-                    guideId: args.input.id
+                    userId_guideId: {
+                        userId: userId,
+                        guideId: args.input.id
+                    }
                 }
             })
 
